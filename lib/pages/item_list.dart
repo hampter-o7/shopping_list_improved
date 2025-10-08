@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/my_widgets/scroll_card.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
-import '../my_widgets/item_card.dart';
+import '../my_widgets/store_item_card.dart';
 import '../my_widgets/reorderable_card_list.dart';
 import '../storage/local_storage.dart';
 
@@ -24,29 +26,7 @@ class _ItemListState extends State<ItemList> {
   late Store store;
   double progress = 0;
   bool alphaOrder = false;
-  bool keyboardOpen = false;
   late StreamSubscription<bool> keyboardSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-
-    var keyboardVisibilityController = KeyboardVisibilityController();
-
-    keyboardSubscription = keyboardVisibilityController.onChange.listen(
-      (bool visible) {
-        debugPrint(visible ? "UP" : "DOWN");
-        keyboardOpen = visible;
-        setState(() {});
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    keyboardSubscription.cancel();
-    super.dispose();
-  }
 
   @override
   void didChangeDependencies() async {
@@ -55,10 +35,9 @@ class _ItemListState extends State<ItemList> {
     store = args['store'];
     storeName = store.name;
     List<int> idItemList = store.storeItemList;
-    itemList = await Storage.loadAllItems(idItemList);
+    itemList = await Storage.loadAllStoreItems(idItemList);
     alphaOrder = await Storage.loadAlphaOrder(2);
     updateProgressBar();
-    setState(() {});
   }
 
   void showSnackbar(String message) {
@@ -70,12 +49,29 @@ class _ItemListState extends State<ItemList> {
     );
   }
 
+  void removeAllCheckmarks(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: 'Yes',
+          onPressed: () {
+            for (Item item in itemList) {
+              item.isChecked = false;
+              Storage.saveItem(item);
+            }
+            updateProgressBar();
+          },
+        ),
+      ),
+    );
+  }
+
   addItemToList(String itemName) async {
     Item? item = await Storage.checkIfItemExists(itemName);
     if (item != null) {
       if (store.storeItemList.contains(item.id)) {
-        showSnackbar(
-            'This item is already on your ${store.name} shopping list.');
+        showSnackbar('This item is already on your ${store.name} shopping list.');
         textController.clear();
 
         return;
@@ -100,7 +96,6 @@ class _ItemListState extends State<ItemList> {
     Storage.saveStore(store);
     textController.clear();
     updateProgressBar();
-    setState(() {});
   }
 
   Future<dynamic> showNewItemSheet(BuildContext context) {
@@ -113,8 +108,7 @@ class _ItemListState extends State<ItemList> {
       ),
       builder: (context) {
         return Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Wrap(
             children: [
               TextField(
@@ -167,10 +161,15 @@ class _ItemListState extends State<ItemList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text(storeName),
+        title: Text(storeName, style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
         centerTitle: true,
-        backgroundColor: Colors.blue[800],
+        backgroundColor: AppColors.of(context).titleBackground,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.invertColor(AppColors.of(context).titleBackground)),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -213,8 +212,8 @@ class _ItemListState extends State<ItemList> {
                       borderRadius: BorderRadius.circular(20),
                       child: LinearProgressIndicator(
                         value: progress,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Colors.green,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.of(context).progressBar,
                         ),
                         minHeight: 20,
                       ),
@@ -222,7 +221,7 @@ class _ItemListState extends State<ItemList> {
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: 0,
+                      top: -2.5,
                       child: Text(
                         '${(progress * 100).toInt()}%',
                         textAlign: TextAlign.center,
@@ -249,23 +248,18 @@ class _ItemListState extends State<ItemList> {
                             } else if (!a.isChecked && b.isChecked) {
                               return -1;
                             } else {
-                              return a.name
-                                  .toLowerCase()
-                                  .compareTo(b.name.toLowerCase());
+                              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
                             }
                           },
                         );
-                        return ItemCard(
+                        return StoreItemCard(
                           list: itemList,
                           store: store,
                           index: index,
                           updateProgressBar: updateProgressBar,
                         );
                       } else {
-                        return Card(
-                          color: Colors.grey[850],
-                          child: const SizedBox(height: 150),
-                        );
+                        return const ScrollCard();
                       }
                     },
                   ),
@@ -279,15 +273,31 @@ class _ItemListState extends State<ItemList> {
                 ),
         ],
       ),
-      floatingActionButton: keyboardOpen
-          ? const SizedBox()
-          : FloatingActionButton(
-              heroTag: 'addItem',
-              child: const Icon(Icons.add, semanticLabel: 'Add new item'),
-              onPressed: () {
-                showNewItemSheet(context);
-              },
-            ),
+      floatingActionButton: SpeedDial(
+        overlayOpacity: 0,
+        icon: Icons.menu,
+        activeIcon: Icons.close,
+        backgroundColor: AppColors.of(context).fabFill,
+        foregroundColor: AppColors.of(context).fabIcon,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.add, color: AppColors.of(context).fabIcon),
+            label: 'Add new item',
+            backgroundColor: AppColors.of(context).fabFill,
+            onTap: () {
+              showNewItemSheet(context);
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.deselect, color: AppColors.of(context).fabIcon),
+            label: 'Uncheck all',
+            backgroundColor: AppColors.of(context).fabFill,
+            onTap: () {
+              removeAllCheckmarks("Are you sure you want to remove all checkmarks?");
+            },
+          ),
+        ],
+      ),
     );
   }
 }

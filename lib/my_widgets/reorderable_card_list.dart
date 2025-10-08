@@ -1,12 +1,13 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:shopping_list/my_widgets/item_card.dart';
+import 'package:shopping_list/my_widgets/store_item_card.dart';
 import 'package:shopping_list/my_widgets/store_card.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
+import 'scroll_card.dart';
 
 class ReorderableCardList<T> extends StatefulWidget {
   final List<T> list;
@@ -44,7 +45,7 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
                 index: index,
                 removeStore: widget.updateProgressBarOrRemoveStore,
               )
-            : ItemCard(
+            : StoreItemCard(
                 key: Key('$index'),
                 list: widget.list as List<Item>,
                 store: widget.store,
@@ -53,18 +54,9 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
               )
     ];
 
-    cards.add(
-      Card(
-        elevation: 0,
-        color: Colors.grey[850],
-        key: const Key('emptyCard'),
-        semanticContainer: false,
-        child: const SizedBox(height: 150),
-      ),
-    );
+    cards.add(const ScrollCard());
 
-    Widget proxyDecorator(
-        Widget child, int index, Animation<double> animation) {
+    Widget proxyDecorator(Widget child, int index, Animation<double> animation) {
       if (index == cards.length - 1) {
         return child;
       }
@@ -85,7 +77,6 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
     return ReorderableListView(
       proxyDecorator: proxyDecorator,
       onReorder: (int oldIndex, int newIndex) {
-        debugPrint('$oldIndex');
         if (oldIndex < cards.length - 1) {
           if (newIndex == cards.length) {
             newIndex -= 1;

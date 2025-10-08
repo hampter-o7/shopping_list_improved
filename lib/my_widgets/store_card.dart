@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shopping_list/classes/app_colors.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -22,10 +23,13 @@ class StoreCard extends StatefulWidget {
 }
 
 class _StoreCard extends State<StoreCard> {
+  final textController = TextEditingController();
   bool canChangeName = false;
+
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.of(context).itemBackgroundCheckFill,
       child: Row(
         children: [
           Expanded(
@@ -41,6 +45,7 @@ class _StoreCard extends State<StoreCard> {
               },
               title: canChangeName
                   ? TextField(
+                      controller: textController,
                       onSubmitted: (newName) {
                         widget.store.name = newName;
                         Storage.saveStore(widget.store);
@@ -56,7 +61,10 @@ class _StoreCard extends State<StoreCard> {
                         hintText: widget.store.name,
                       ),
                     )
-                  : Text(widget.store.name),
+                  : Text(
+                      widget.store.name,
+                      style: TextStyle(color: AppColors.of(context).itemTextNormalBorderCheck),
+                    ),
               leading: widget.store.imageLocation.isNotEmpty
                   ? Container(
                       margin: const EdgeInsets.all(3),
@@ -68,6 +76,7 @@ class _StoreCard extends State<StoreCard> {
             ),
           ),
           PopupMenuButton<String>(
+            iconColor: AppColors.of(context).itemTextNormalBorderCheck,
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
                 const PopupMenuItem<String>(
@@ -87,6 +96,7 @@ class _StoreCard extends State<StoreCard> {
             onSelected: (String value) async {
               switch (value) {
                 case '1':
+                  textController.text = widget.store.name;
                   canChangeName = true;
                   setState(() {});
                   break;

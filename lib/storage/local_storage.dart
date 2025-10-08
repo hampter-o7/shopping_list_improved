@@ -37,7 +37,6 @@ class Storage {
   }
 
   static Future<void> saveStore(Store store) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String key = '$storeKeyPrefix${store.id}';
     final value = {
       'name': store.name,
@@ -47,6 +46,7 @@ class Storage {
       'storeItemList': store.storeItemList
     };
     final valueJson = json.encode(value);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, valueJson);
   }
 
@@ -55,8 +55,7 @@ class Storage {
     int lastId = 0;
     if (store.imageLocation != '') {
       int dirLength = directory.path.length;
-      lastId = int.parse(
-          store.imageLocation.substring(dirLength + 9, dirLength + 9 + 8));
+      lastId = int.parse(store.imageLocation.substring(dirLength + 9, dirLength + 9 + 8));
       if (File(store.imageLocation).existsSync()) {
         File(store.imageLocation).deleteSync();
       }
@@ -67,8 +66,7 @@ class Storage {
     } while (newId == lastId);
 
     final String imagePath = '${directory.path}/${store.id}${newId}Image.png';
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final image = File(pickedFile.path);
       await image.copy(imagePath);
@@ -128,7 +126,6 @@ class Storage {
   }
 
   static Future<void> saveItem(Item item) async {
-    final prefs = await SharedPreferences.getInstance();
     final key = '$itemKeyPrefix${item.id}';
     final value = {
       'name': item.name,
@@ -137,7 +134,19 @@ class Storage {
       'storeList': item.storeList,
     };
     final valueJson = json.encode(value);
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, valueJson);
+  }
+
+  static Future<List<Item>> loadAllItems() async {
+    List<Item> items = [];
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys().where((key) => key.startsWith(itemKeyPrefix));
+    for (String key in keys) {
+      Item? loadedStore = await loadItem(key);
+      if (loadedStore != null) items.add(loadedStore);
+    }
+    return items;
   }
 
   static Future<Item?> checkIfItemExists(String name) async {
@@ -150,7 +159,7 @@ class Storage {
     return null;
   }
 
-  static Future<List<Item>> loadAllItems(List<int> listOfIds) async {
+  static Future<List<Item>> loadAllStoreItems(List<int> listOfIds) async {
     List<Item> items = [];
     for (int id in listOfIds) {
       Item? loadedItem = await loadItem('$itemKeyPrefix$id');
@@ -178,15 +187,12 @@ class Storage {
   static Future<int> generateIdNumber(bool isStore) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where(
-          (key) =>
-              key.startsWith(storeKeyPrefix) && isStore ||
-              key.startsWith(itemKeyPrefix) && !isStore,
+          (key) => key.startsWith(storeKeyPrefix) && isStore || key.startsWith(itemKeyPrefix) && !isStore,
         );
     late int newId;
     do {
       newId = generateRandomIdNumber(8);
-    } while (
-        keys.contains('${isStore ? storeKeyPrefix : itemKeyPrefix}$newId'));
+    } while (keys.contains('${isStore ? storeKeyPrefix : itemKeyPrefix}$newId'));
     return newId;
   }
 
@@ -203,21 +209,23 @@ class Storage {
   static printAllSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where(
-          (key) =>
-              key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
+          (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
         );
+    debugPrint('STORES:');
     for (final key in keys) {
       if (key.startsWith(storeKeyPrefix)) {
         Store? store = await loadStore(key);
         if (store != null) {
-          debugPrint(
-              'STORE. name: ${store.name}, id: ${store.id}, order: ${store.order}, storeList: ${store.storeItemList.toString()}');
+          debugPrint('name: ${store.name}, id: ${store.id}, order: ${store.order}, itemList: ${store.storeItemList.toString()}');
         }
-      } else {
+      }
+    }
+    debugPrint('ITEMS:');
+    for (final key in keys) {
+      if (key.startsWith(itemKeyPrefix)) {
         Item? item = await loadItem(key);
         if (item != null) {
-          debugPrint(
-              'ITEM. name: ${item.name}, id: ${item.id}, storeList: ${item.storeList.toString()}');
+          debugPrint('name: ${item.name}, id: ${item.id}, storeList: ${item.storeList.toString()}');
         }
       }
     }
@@ -236,8 +244,7 @@ class Storage {
 
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys().where(
-            (key) =>
-                key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
+            (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
           );
       for (String key in keys) {
         if (key.contains(itemKeyPrefix)) {
@@ -273,18 +280,15 @@ class Storage {
         'alphaOrder': allAlphaOrder,
       };
 
-      final String? directoryPath =
-          await FilePicker.platform.getDirectoryPath();
+      final String? directoryPath = await FilePicker.platform.getDirectoryPath();
 
       if (directoryPath != null) {
         final directory = Directory(directoryPath);
 
         if (await directory.exists()) {
-          final file = File(
-              '${directory.path}/combined_data${generateRandomIdNumber(8)}.json');
+          final file = File('${directory.path}/combined_data${generateRandomIdNumber(8)}.json');
           final encodedData = jsonEncode(allData);
           await file.writeAsString(encodedData);
-          debugPrint('Combined data saved to ${file.path}');
         }
       }
     } catch (e) {
@@ -356,58 +360,62 @@ class Storage {
         saveAlphaOrder(alphaOrderList[1], 2);
       }
     } catch (e) {
-      debugPrint('Error');
+      debugPrint('ERROR');
     }
   }
 
-  static Future<void> deleteStoreOrItem(
-      bool isStore, int id, int storeId) async {
+  static Future<void> deleteStore(int id) async {
+    Store? store = await loadStore('$storeKeyPrefix$id');
+    if (store != null) {
+      List<Item> items = await loadAllStoreItems(store.storeItemList);
+      for (Item item in items) {
+        deleteItem(item.id, store.id);
+      }
+      if (store.imageLocation != '') {
+        if (File(store.imageLocation).existsSync()) {
+          File(store.imageLocation).deleteSync();
+        }
+      }
+    }
     final prefs = await SharedPreferences.getInstance();
-    if (!isStore) {
-      Item? item = await loadItem('$itemKeyPrefix$id');
-      Store? store = await loadStore('$storeKeyPrefix$storeId');
-      if (item != null) {
-        item.storeList.remove(storeId);
-        await Storage.saveItem(item);
-        if (item.storeList.isEmpty) {
-          await prefs.remove('$itemKeyPrefix$id');
-        }
+    await prefs.remove('$storeKeyPrefix$id');
+  }
+
+  static Future<void> deleteItem(int id, int storeId) async {
+    Item? item = await loadItem('$itemKeyPrefix$id');
+    Store? store = await loadStore('$storeKeyPrefix$storeId');
+    if (item != null) {
+      item.storeList.remove(storeId);
+      await Storage.saveItem(item);
+      if (item.storeList.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('$itemKeyPrefix$id');
       }
-      if (store != null) {
-        store.storeItemList.remove(id);
-        saveStore(store);
+    }
+    if (store != null) {
+      store.storeItemList.remove(id);
+      saveStore(store);
+    }
+  }
+
+  static Future<void> deleteItemFromAllStores(int id) async {
+    Item? item = await loadItem('$itemKeyPrefix$id');
+    if (item != null) {
+      for (int storeId in item.storeList) {
+        deleteItem(id, storeId);
       }
-    } else {
-      Store? store = await loadStore('$storeKeyPrefix$id');
-      if (store != null) {
-        List<Item> items = await loadAllItems(store.storeItemList);
-        for (Item item in items) {
-          deleteStoreOrItem(false, item.id, store.id);
-        }
-        if (store.imageLocation != '') {
-          if (File(store.imageLocation).existsSync()) {
-            File(store.imageLocation).deleteSync();
-          }
-        }
-      }
-      await prefs.remove('$storeKeyPrefix$id');
     }
   }
 
   static Future<void> deleteAll() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where(
-          (key) =>
-              key.startsWith(storeKeyPrefix) ||
-              key.startsWith(itemKeyPrefix) ||
-              key.startsWith(alphaOrderKey),
+          (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix) || key.startsWith(alphaOrderKey),
         );
     for (final key in keys) {
       if (key.contains(storeKeyPrefix)) {
         Store? store = await loadStore(key);
-        if (store != null &&
-            store.imageLocation != '' &&
-            File(store.imageLocation).existsSync()) {
+        if (store != null && store.imageLocation != '' && File(store.imageLocation).existsSync()) {
           File(store.imageLocation).deleteSync();
         }
       }

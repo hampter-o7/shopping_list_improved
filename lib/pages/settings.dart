@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:flutter_settings_ui/flutter_settings_ui.dart';
+import 'package:shopping_list/classes/app_colors.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -47,15 +48,20 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: const Text('Store list'),
+        title: Text('Settings', style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
         centerTitle: true,
-        backgroundColor: Colors.blue[800],
+        backgroundColor: AppColors.of(context).titleBackground,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.invertColor(AppColors.of(context).titleBackground)),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SettingsList(
         sections: [
           SettingsSection(
-            tiles: <SettingsTile>[
+            tiles: [
               SettingsTile.navigation(
                 leading: const Icon(Icons.delete),
                 title: const Text('Delete everything'),
@@ -87,34 +93,6 @@ class _SettingsState extends State<Settings> {
           ),
         ],
       ),
-      //   Column(
-      //     children: [
-      //       TextButton(
-      //         onPressed: () {
-      //           showSnackbar(
-      //             'Are you sure you want to delete all the data?',
-      //             true,
-      //           );
-      //         },
-      //         child: const Text('Delete everything'),
-      //       ),
-      //       TextButton(
-      //         onPressed: () {
-      //           Storage.exportAllData();
-      //         },
-      //         child: const Text('Export data'),
-      //       ),
-      //       TextButton(
-      //         onPressed: () async {
-      //           showSnackbar(
-      //             'Are you sure you want to delete all current data and import new data?',
-      //             false,
-      //           );
-      //         },
-      //         child: const Text('Import data'),
-      //       ),
-      //     ],
-      //   ),
     );
   }
 }

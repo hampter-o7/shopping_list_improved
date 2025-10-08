@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:shopping_list/classes/app_colors.dart';
 
 import '../classes/store.dart';
 import '../my_widgets/reorderable_card_list.dart';
+import '../my_widgets/scroll_card.dart';
 import '../my_widgets/store_card.dart';
 import '../storage/local_storage.dart';
 
@@ -20,27 +22,12 @@ class _StoreListState extends State<StoreList> {
   List<Store> storeList = [];
   final textController = TextEditingController();
   bool alphaOrder = false;
-  bool keyboardOpen = false;
   late StreamSubscription<bool> keyboardSubscription;
 
   @override
   void initState() {
     super.initState();
     loadStoresAndAlphaOrder();
-    var keyboardVisibilityController = KeyboardVisibilityController();
-
-    keyboardSubscription = keyboardVisibilityController.onChange.listen(
-      (bool visible) {
-        keyboardOpen = visible;
-        setState(() {});
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    keyboardSubscription.cancel();
-    super.dispose();
   }
 
   Future<void> loadStoresAndAlphaOrder() async {
@@ -70,7 +57,7 @@ class _StoreListState extends State<StoreList> {
   }
 
   removeStore(int index) async {
-    await Storage.deleteStoreOrItem(true, storeList.elementAt(index).id, 0);
+    await Storage.deleteStore(storeList.elementAt(index).id);
     storeList.removeAt(index);
     setState(() {});
   }
@@ -85,8 +72,7 @@ class _StoreListState extends State<StoreList> {
       ),
       builder: (context) {
         return Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Wrap(
             children: [
               TextField(
@@ -126,6 +112,7 @@ class _StoreListState extends State<StoreList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
@@ -137,11 +124,11 @@ class _StoreListState extends State<StoreList> {
               },
             );
           },
-          icon: const Icon(Icons.settings, semanticLabel: 'Settings'),
+          icon: Icon(Icons.settings, color: AppColors.invertColor(AppColors.of(context).titleBackground), semanticLabel: 'Settings'),
         ),
-        title: const Text('Store list'),
+        title: Text('Store list', style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
         centerTitle: true,
-        backgroundColor: Colors.blue[800],
+        backgroundColor: AppColors.of(context).titleBackground,
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -175,18 +162,14 @@ class _StoreListState extends State<StoreList> {
               itemCount: storeList.length + 1,
               itemBuilder: (context, index) {
                 if (index < storeList.length) {
-                  storeList.sort((a, b) =>
-                      a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                  storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
                   return StoreCard(
                     store: storeList[index],
                     index: index,
                     removeStore: removeStore,
                   );
                 } else {
-                  return Card(
-                    color: Colors.grey[850],
-                    child: const SizedBox(height: 150),
-                  );
+                  return const ScrollCard();
                 }
               },
             )
@@ -195,15 +178,34 @@ class _StoreListState extends State<StoreList> {
               store: Store.empty(),
               updateProgressBarOrRemoveStore: removeStore,
             ),
-      floatingActionButton: keyboardOpen
-          ? const SizedBox()
-          : FloatingActionButton(
-              heroTag: 'addStore',
-              child: const Icon(Icons.add, semanticLabel: 'Add new store'),
-              onPressed: () {
-                showNewStoreSheet(context);
-              },
-            ),
+      floatingActionButton: SpeedDial(
+        overlayOpacity: 0,
+        icon: Icons.menu,
+        activeIcon: Icons.close,
+        backgroundColor: AppColors.of(context).fabFill,
+        foregroundColor: AppColors.of(context).fabIcon,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.add, color: AppColors.of(context).fabIcon),
+            label: 'Add new store',
+            backgroundColor: AppColors.of(context).fabFill,
+            onTap: () {
+              showNewStoreSheet(context);
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.checklist_rounded, color: AppColors.of(context).fabIcon),
+            label: 'Show all items',
+            backgroundColor: AppColors.of(context).fabFill,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/AllItemsList',
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

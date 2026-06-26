@@ -2,7 +2,7 @@ ext {
     compileSdkVersion = 34
     targetSdkVersion = 34
     appCompatVersion = "1.4.2"
-    kotlin_version = "1.6"
+    kotlin_version = "2.3.0"
 }
 
 allprojects {

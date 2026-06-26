@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shopping_list/classes/colors.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
@@ -15,6 +16,8 @@ class Storage {
   static const String itemKeyPrefix = 'item_';
   static const String storeKeyPrefix = 'store_';
   static const String alphaOrderKey = 'alphaOrder';
+  static const String themeModeKey = 'themeMode';
+  static const String costumeThemeKey = 'costumeTheme';
 
   static Future<void> saveAlphaOrder(bool alphaOrder, int number) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -28,6 +31,39 @@ class Storage {
       return false;
     }
     return alphaOrderString.toLowerCase() == 'true';
+  }
+
+  static Future<void> saveThemeMode(int number) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(themeModeKey, number);
+  }
+
+  static Future<int> loadThemeMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? themeMode = prefs.getInt(themeModeKey);
+    if (themeMode == null) {
+      return 1;
+    }
+    return themeMode;
+  }
+
+  static Future<void> saveCostumeTheme(ColorPalette colorPalette) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(costumeThemeKey, jsonEncode(colorPalette.toJson()));
+  }
+
+  static Future<ColorPalette?> loadCostumeTheme() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? costumeColorPalette = prefs.getString(costumeThemeKey);
+    if (costumeColorPalette == null) {
+      return null;
+    }
+    return ColorPalette.fromJson(jsonDecode(costumeColorPalette) as Map<String, dynamic>);
+  }
+
+  static Future<void> deleteCostumeTheme() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(costumeThemeKey);
   }
 
   static Future<void> saveAllStores(List<Store> stores) async {
@@ -50,7 +86,7 @@ class Storage {
     await prefs.setString(key, valueJson);
   }
 
-  static saveStoreImage(Store store) async {
+  static Future<void> saveStoreImage(Store store) async {
     final Directory directory = await getApplicationDocumentsDirectory();
     int lastId = 0;
     if (store.imageLocation != '') {
@@ -132,6 +168,7 @@ class Storage {
       'id': item.id,
       'isChecked': item.isChecked,
       'storeList': item.storeList,
+      'isOneTimeItem': item.isOneTimeItem,
     };
     final valueJson = json.encode(value);
     final prefs = await SharedPreferences.getInstance();
@@ -178,6 +215,7 @@ class Storage {
         id: value['id'],
         isChecked: value['isChecked'],
         storeList: List<int>.from(value['storeList']),
+        isOneTimeItem: value['isOneTimeItem'] ?? false,
       );
       return item;
     }
@@ -206,7 +244,7 @@ class Storage {
     return randomNumber;
   }
 
-  static printAllSavedData() async {
+  static Future<void> printAllSavedData() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where(
           (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
@@ -225,13 +263,13 @@ class Storage {
       if (key.startsWith(itemKeyPrefix)) {
         Item? item = await loadItem(key);
         if (item != null) {
-          debugPrint('name: ${item.name}, id: ${item.id}, storeList: ${item.storeList.toString()}');
+          debugPrint('name: ${item.name}, id: ${item.id}, storeList: ${item.storeList.toString()}, isOneTimeItem: ${item.isOneTimeItem}');
         }
       }
     }
   }
 
-  static exportAllData() async {
+  static Future<void> exportAllData() async {
     try {
       List<String> allJsonItems = [];
       List<String> allJsonStores = [];
@@ -255,6 +293,7 @@ class Storage {
               'id': item.id,
               'isChecked': item.isChecked,
               'storeList': item.storeList,
+              'isOneTimeItem': item.isOneTimeItem,
             };
             final valueJson = json.encode(value);
             allJsonItems.add(valueJson);
@@ -280,7 +319,7 @@ class Storage {
         'alphaOrder': allAlphaOrder,
       };
 
-      final String? directoryPath = await FilePicker.platform.getDirectoryPath();
+      final String? directoryPath = await FilePicker.getDirectoryPath();
 
       if (directoryPath != null) {
         final directory = Directory(directoryPath);
@@ -296,13 +335,12 @@ class Storage {
     }
   }
 
-  static importNewData() async {
+  static Future<void> importNewData() async {
     try {
       deleteAll();
       String? filePath;
 
-      FilePickerResult? result;
-      result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
       );
@@ -324,7 +362,7 @@ class Storage {
                 name: storeData['name'],
                 id: storeData['id'],
                 order: storeData['order'],
-                imageLocation: storeData['imageLocation'],
+                imageLocation: '',
                 storeItemList: List<int>.from(storeData['storeItemList']),
               );
             },
@@ -342,6 +380,7 @@ class Storage {
                 id: itemData['id'],
                 isChecked: itemData['isChecked'],
                 storeList: List<int>.from(itemData['storeList']),
+                isOneTimeItem: itemData['isOneTimeItem'] ?? false,
               );
             },
           ),
@@ -402,7 +441,7 @@ class Storage {
     Item? item = await loadItem('$itemKeyPrefix$id');
     if (item != null) {
       for (int storeId in item.storeList) {
-        deleteItem(id, storeId);
+        await deleteItem(id, storeId);
       }
     }
   }

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:shopping_list/my_widgets/store_item_card.dart';
+import 'package:shopping_list/my_widgets/item_card.dart';
 import 'package:shopping_list/my_widgets/store_card.dart';
 
 import '../classes/item.dart';
@@ -45,7 +45,7 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
                 index: index,
                 removeStore: widget.updateProgressBarOrRemoveStore,
               )
-            : StoreItemCard(
+            : ItemCard(
                 key: Key('$index'),
                 list: widget.list as List<Item>,
                 store: widget.store,
@@ -76,14 +76,8 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
 
     return ReorderableListView(
       proxyDecorator: proxyDecorator,
-      onReorder: (int oldIndex, int newIndex) {
+      onReorderItem: (int oldIndex, int newIndex) {
         if (oldIndex < cards.length - 1) {
-          if (newIndex == cards.length) {
-            newIndex -= 1;
-          }
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
           final item = widget.list.removeAt(oldIndex);
           widget.list.insert(newIndex, item);
           List<int> idList = [];

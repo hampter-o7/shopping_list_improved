@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/classes/colors.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -29,7 +29,7 @@ class _StoreCard extends State<StoreCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.of(context).itemBackgroundCheckFill,
+      color: AppColors.of(context).resolvedItemBackground,
       child: Row(
         children: [
           Expanded(
@@ -63,33 +63,34 @@ class _StoreCard extends State<StoreCard> {
                     )
                   : Text(
                       widget.store.name,
-                      style: TextStyle(color: AppColors.of(context).itemTextNormalBorderCheck),
+                      style: TextStyle(color: AppColors.of(context).resolvedItemText),
                     ),
               leading: widget.store.imageLocation.isNotEmpty
                   ? Container(
                       margin: const EdgeInsets.all(3),
                       child: File(widget.store.imageLocation).existsSync()
                           ? Image.file(File(widget.store.imageLocation))
-                          : const Icon(Icons.shopping_cart_rounded),
+                          : Icon(Icons.shopping_cart_rounded, color: AppColors.of(context).resolvedItemText),
                     )
-                  : const Icon(Icons.shopping_cart_rounded),
+                  : Icon(Icons.shopping_cart_rounded, color: AppColors.of(context).resolvedItemText),
             ),
           ),
           PopupMenuButton<String>(
-            iconColor: AppColors.of(context).itemTextNormalBorderCheck,
+            color: AppColors.of(context).resolvedItemBackground,
+            iconColor: AppColors.of(context).resolvedItemText,
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: '1',
-                  child: Text('Change name'),
+                  child: Text('Change name', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: '2',
-                  child: Text('Add/change image'),
+                  child: Text('Add/change image', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: '3',
-                  child: Text('Delete'),
+                  child: Text('Delete', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
               ];
             },

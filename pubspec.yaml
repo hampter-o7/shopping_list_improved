@@ -1,10 +1,10 @@
 name: shopping_list
 description: A shopping list app.
 publish_to: 'none'
-version: 1.5.0+3
+version: 1.6.0+1
 
 environment:
-  sdk: '>=2.19.6 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
 
@@ -13,17 +13,19 @@ dependencies:
   shared_preferences: ^2.2.1
   image_picker: ^1.0.7
   path_provider: ^2.1.2
-  file_picker: ^8.0.0+1
+  file_picker: ^11.0.2
   flutter_settings_ui: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
-  accessibility_tools: ^1.0.1
+  flutter_launcher_icons: ^0.14.4
+  accessibility_tools: ^2.7.1
   flutter_speed_dial: ^7.0.0
-  implicitly_animated_reorderable_list_2: ^0.5.1
+  implicitly_animated_reorderable_list_2: ^0.6.0
+  provider: ^6.1.5+1
+  flex_color_picker: ^3.8.0
   
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.2
+  flutter_lints: ^6.0.0
 
 flutter_icons:
   android: true

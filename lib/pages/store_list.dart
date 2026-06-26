@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/classes/colors.dart';
 
 import '../classes/store.dart';
 import '../my_widgets/reorderable_card_list.dart';
@@ -41,7 +41,7 @@ class _StoreListState extends State<StoreList> {
     setState(() {});
   }
 
-  addShopToList(String storeName) async {
+  Future<void> addShopToList(String storeName) async {
     int newId = await Storage.generateIdNumber(true);
     Store newStore = Store(
       name: storeName,
@@ -56,7 +56,7 @@ class _StoreListState extends State<StoreList> {
     setState(() {});
   }
 
-  removeStore(int index) async {
+  Future<void> removeStore(int index) async {
     await Storage.deleteStore(storeList.elementAt(index).id);
     storeList.removeAt(index);
     setState(() {});
@@ -124,11 +124,11 @@ class _StoreListState extends State<StoreList> {
               },
             );
           },
-          icon: Icon(Icons.settings, color: AppColors.invertColor(AppColors.of(context).titleBackground), semanticLabel: 'Settings'),
+          icon: Icon(Icons.settings, color: AppColors.of(context).resolvedTitleText, semanticLabel: 'Settings'),
         ),
-        title: Text('Store list', style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
+        title: Text('STORES', style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).titleBackground,
+        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -147,6 +147,11 @@ class _StoreListState extends State<StoreList> {
             increasedValue: 'Tap to disable feature',
             decreasedValue: 'Tap to enable feature',
             child: Switch(
+              activeThumbColor: AppColors.of(context).resolvedItemText,
+              activeTrackColor: AppColors.of(context).resolvedItemBackground,
+              inactiveThumbColor: AppColors.of(context).resolvedItemText,
+              inactiveTrackColor: AppColors.of(context).resolvedItemBackground,
+              trackOutlineColor: WidgetStateProperty.all(AppColors.of(context).resolvedTitleText),
               onChanged: (bool value) async {
                 await Storage.saveAlphaOrder(value, 1);
                 alphaOrder = value;
@@ -157,46 +162,53 @@ class _StoreListState extends State<StoreList> {
           ),
         ],
       ),
-      body: alphaOrder
-          ? ListView.builder(
-              itemCount: storeList.length + 1,
-              itemBuilder: (context, index) {
-                if (index < storeList.length) {
-                  storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-                  return StoreCard(
-                    store: storeList[index],
-                    index: index,
-                    removeStore: removeStore,
-                  );
-                } else {
-                  return const ScrollCard();
-                }
-              },
-            )
-          : ReorderableCardList(
-              list: storeList,
-              store: Store.empty(),
-              updateProgressBarOrRemoveStore: removeStore,
-            ),
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: alphaOrder
+            ? ListView.builder(
+                itemCount: storeList.length + 1,
+                itemBuilder: (context, index) {
+                  if (index < storeList.length) {
+                    storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                    return StoreCard(
+                      store: storeList[index],
+                      index: index,
+                      removeStore: removeStore,
+                    );
+                  } else {
+                    return const ScrollCard();
+                  }
+                },
+              )
+            : ReorderableCardList(
+                list: storeList,
+                store: Store.empty(),
+                updateProgressBarOrRemoveStore: removeStore,
+              ),
+      ),
       floatingActionButton: SpeedDial(
         overlayOpacity: 0,
         icon: Icons.menu,
         activeIcon: Icons.close,
-        backgroundColor: AppColors.of(context).fabFill,
-        foregroundColor: AppColors.of(context).fabIcon,
+        backgroundColor: AppColors.of(context).resolvedFabFill,
+        foregroundColor: AppColors.of(context).resolvedFabIcon,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.add, color: AppColors.of(context).fabIcon),
+            child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
             label: 'Add new store',
-            backgroundColor: AppColors.of(context).fabFill,
+            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
+            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
+            backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
               showNewStoreSheet(context);
             },
           ),
           SpeedDialChild(
-            child: Icon(Icons.checklist_rounded, color: AppColors.of(context).fabIcon),
+            child: Icon(Icons.checklist_rounded, color: AppColors.of(context).resolvedFabIcon),
             label: 'Show all items',
-            backgroundColor: AppColors.of(context).fabFill,
+            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
+            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
+            backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
               Navigator.pushNamed(
                 context,

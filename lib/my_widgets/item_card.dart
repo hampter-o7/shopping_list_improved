@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/classes/colors.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
 
-class StoreItemCard extends StatefulWidget {
+class ItemCard extends StatefulWidget {
   final List<Item> list;
   final Store store;
   final int index;
   final Function updateProgressBar;
 
-  const StoreItemCard({
+  const ItemCard({
     super.key,
     required this.list,
     required this.store,
@@ -20,14 +20,19 @@ class StoreItemCard extends StatefulWidget {
   });
 
   @override
-  State<StoreItemCard> createState() => _ItemCard();
+  State<ItemCard> createState() => _ItemCard();
 }
 
-class _ItemCard extends State<StoreItemCard> {
+class _ItemCard extends State<ItemCard> {
   final textController = TextEditingController();
   bool canChangeName = false;
 
-  void handleChangeName(String newName) async {
+  void handleChangeName(String newName, String oldName) async {
+    if (newName == oldName) {
+      canChangeName = false;
+      setState(() {});
+      return;
+    }
     Item? item = await Storage.checkIfItemExists(newName);
     if (item != null) {
       if (widget.list.any((element) => element.id == item.id)) {
@@ -84,7 +89,7 @@ class _ItemCard extends State<StoreItemCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.of(context).itemBackgroundCheckFill,
+      color: AppColors.of(context).resolvedItemBackground,
       child: Row(
         children: [
           Transform.scale(
@@ -93,16 +98,23 @@ class _ItemCard extends State<StoreItemCard> {
               semanticLabel: 'Checkbox for ${widget.list[widget.index].name}',
               value: widget.list[widget.index].isChecked,
               onChanged: (value) {
+                if (widget.list[widget.index].isOneTimeItem) {
+                  Storage.deleteItemFromAllStores(widget.list[widget.index].id);
+                  widget.store.storeItemList.removeWhere((element) => element == widget.list[widget.index].id);
+                  widget.list.removeAt(widget.index);
+                  widget.updateProgressBar();
+                  return;
+                }
                 widget.list[widget.index].isChecked = value!;
                 Storage.saveItem(widget.list[widget.index]);
                 widget.updateProgressBar();
               },
-              fillColor: MaterialStateColor.resolveWith((states) => AppColors.of(context).itemBackgroundCheckFill),
-              checkColor: AppColors.of(context).itemTextNormalBorderCheck,
+              fillColor: WidgetStateColor.resolveWith((states) => AppColors.of(context).resolvedItemBackground),
+              checkColor: AppColors.of(context).resolvedItemCheckbox,
               side: BorderSide(
                 width: 2.0,
                 style: BorderStyle.solid,
-                color: AppColors.of(context).itemTextNormalBorderCheck,
+                color: AppColors.of(context).resolvedItemCheckbox,
               ),
             ),
           ),
@@ -111,7 +123,7 @@ class _ItemCard extends State<StoreItemCard> {
                 ? TextField(
                     controller: textController,
                     onSubmitted: (newName) async {
-                      handleChangeName(newName);
+                      handleChangeName(newName, widget.list[widget.index].name);
                     },
                     onTapOutside: (oldName) {
                       canChangeName = false;
@@ -126,29 +138,30 @@ class _ItemCard extends State<StoreItemCard> {
                     widget.list[widget.index].name,
                     style: !widget.list[widget.index].isChecked
                         ? TextStyle(
-                            color: AppColors.of(context).itemTextNormalBorderCheck,
+                            color: AppColors.of(context).resolvedItemText,
                             fontWeight: FontWeight.bold,
                           )
                         : TextStyle(
-                            color: AppColors.of(context).itemTextCrossed,
+                            color: AppColors.of(context).resolvedItemCrossed,
                             fontStyle: FontStyle.italic,
                             decoration: TextDecoration.lineThrough,
-                            decorationThickness: 2.5,
-                            decorationColor: AppColors.of(context).itemTextCrossedLine,
+                            decorationThickness: 3,
+                            decorationColor: AppColors.of(context).resolvedItemCrossedLine,
                           ),
                   ),
           ),
           PopupMenuButton<String>(
-            iconColor: AppColors.of(context).itemTextNormalBorderCheck,
+            color: AppColors.of(context).resolvedItemBackground,
+            iconColor: AppColors.of(context).resolvedItemText,
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: '1',
-                  child: Text('Change name'),
+                  child: Text('Change name', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: '2',
-                  child: Text('Delete'),
+                  child: Text('Delete', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
               ];
             },

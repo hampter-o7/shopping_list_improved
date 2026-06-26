@@ -1,14 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
-import '../my_widgets/store_item_card.dart';
+import '../my_widgets/item_card.dart';
 import '../my_widgets/reorderable_card_list.dart';
 import '../storage/local_storage.dart';
 
@@ -53,27 +54,29 @@ class _ItemListState extends State<ItemList> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        persist: false,
         action: SnackBarAction(
           label: 'Yes',
           onPressed: () {
             for (Item item in itemList) {
+              debugPrint("SnackBar shown at ${DateTime.now()}");
               item.isChecked = false;
               Storage.saveItem(item);
             }
             updateProgressBar();
           },
         ),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
 
-  addItemToList(String itemName) async {
+  Future<void> addItemToList(String itemName, bool isOneTimeItem) async {
     Item? item = await Storage.checkIfItemExists(itemName);
     if (item != null) {
       if (store.storeItemList.contains(item.id)) {
         showSnackbar('This item is already on your ${store.name} shopping list.');
         textController.clear();
-
         return;
       }
       item.storeList.add(store.id);
@@ -87,6 +90,7 @@ class _ItemListState extends State<ItemList> {
         id: newId,
         isChecked: false,
         storeList: [],
+        isOneTimeItem: isOneTimeItem,
       );
       newItem.storeList.add(store.id);
       itemList.add(newItem);
@@ -99,6 +103,7 @@ class _ItemListState extends State<ItemList> {
   }
 
   Future<dynamic> showNewItemSheet(BuildContext context) {
+    bool isOneTimeItem = false;
     return showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -107,39 +112,57 @@ class _ItemListState extends State<ItemList> {
         ),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Wrap(
-            children: [
-              TextField(
-                onSubmitted: (value) {
-                  addItemToList(textController.text);
-                  Navigator.pop(context);
-                },
-                autofocus: true,
-                controller: textController,
-                textAlign: TextAlign.center,
-                decoration: const InputDecoration(
-                  hintText: 'Name of new item',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(15.0),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Wrap(
+                children: [
+                  TextField(
+                    onSubmitted: (value) {
+                      addItemToList(textController.text, isOneTimeItem);
+                      Navigator.pop(context);
+                    },
+                    autofocus: true,
+                    controller: textController,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Name of new item',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(15.0),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("One time item"),
+                      Checkbox(
+                        value: isOneTimeItem,
+                        onChanged: (changed) {
+                          isOneTimeItem = changed ?? false;
+                          setModalState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        addItemToList(textController.text, isOneTimeItem);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('ADD'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 15),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    addItemToList(textController.text);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Add'),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -163,11 +186,27 @@ class _ItemListState extends State<ItemList> {
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text(storeName, style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
+        title: Stack(
+          alignment: Alignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                store.imageLocation.isNotEmpty
+                    ? SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Container(margin: const EdgeInsets.all(3), child: Image.file(File(store.imageLocation), fit: BoxFit.cover)))
+                    : Container(),
+                Text(storeName, style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+              ],
+            ),
+          ],
+        ),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).titleBackground,
+        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.invertColor(AppColors.of(context).titleBackground)),
+          icon: Icon(Icons.arrow_back, color: AppColors.of(context).resolvedTitleText),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -188,6 +227,11 @@ class _ItemListState extends State<ItemList> {
             increasedValue: 'Tap to disable feature',
             decreasedValue: 'Tap to enable feature',
             child: Switch(
+              activeThumbColor: AppColors.of(context).resolvedItemText,
+              activeTrackColor: AppColors.of(context).resolvedItemBackground,
+              inactiveThumbColor: AppColors.of(context).resolvedItemText,
+              inactiveTrackColor: AppColors.of(context).resolvedItemBackground,
+              trackOutlineColor: WidgetStateProperty.all(AppColors.of(context).resolvedTitleText),
               onChanged: (bool value) async {
                 await Storage.saveAlphaOrder(value, 2);
                 alphaOrder = value;
@@ -203,7 +247,8 @@ class _ItemListState extends State<ItemList> {
           Visibility(
             visible: itemList.isNotEmpty,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: AppColors.of(context).primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: SizedBox(
                 height: 20,
                 child: Stack(
@@ -215,18 +260,20 @@ class _ItemListState extends State<ItemList> {
                         valueColor: AlwaysStoppedAnimation<Color>(
                           AppColors.of(context).progressBar,
                         ),
+                        backgroundColor: AppColors.of(context).background,
                         minHeight: 20,
                       ),
                     ),
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: -2.5,
+                      top: 0,
                       child: Text(
                         '${(progress * 100).toInt()}%',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: AppColors.onColor(AppColors.of(context).progressBar),
                         ),
                       ),
                     ),
@@ -238,6 +285,7 @@ class _ItemListState extends State<ItemList> {
           alphaOrder
               ? Expanded(
                   child: ListView.builder(
+                    padding: const EdgeInsets.all(10),
                     itemCount: itemList.length + 1,
                     itemBuilder: (context, index) {
                       if (index < itemList.length) {
@@ -252,7 +300,7 @@ class _ItemListState extends State<ItemList> {
                             }
                           },
                         );
-                        return StoreItemCard(
+                        return ItemCard(
                           list: itemList,
                           store: store,
                           index: index,
@@ -265,10 +313,13 @@ class _ItemListState extends State<ItemList> {
                   ),
                 )
               : Expanded(
-                  child: ReorderableCardList(
-                    list: itemList,
-                    store: store,
-                    updateProgressBarOrRemoveStore: updateProgressBar,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: ReorderableCardList(
+                      list: itemList,
+                      store: store,
+                      updateProgressBarOrRemoveStore: updateProgressBar,
+                    ),
                   ),
                 ),
         ],
@@ -277,21 +328,25 @@ class _ItemListState extends State<ItemList> {
         overlayOpacity: 0,
         icon: Icons.menu,
         activeIcon: Icons.close,
-        backgroundColor: AppColors.of(context).fabFill,
-        foregroundColor: AppColors.of(context).fabIcon,
+        backgroundColor: AppColors.of(context).resolvedFabFill,
+        foregroundColor: AppColors.of(context).resolvedFabIcon,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.add, color: AppColors.of(context).fabIcon),
+            child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
             label: 'Add new item',
-            backgroundColor: AppColors.of(context).fabFill,
+            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
+            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
+            backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
               showNewItemSheet(context);
             },
           ),
           SpeedDialChild(
-            child: Icon(Icons.deselect, color: AppColors.of(context).fabIcon),
+            child: Icon(Icons.deselect, color: AppColors.of(context).resolvedFabIcon),
             label: 'Uncheck all',
-            backgroundColor: AppColors.of(context).fabFill,
+            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
+            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
+            backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
               removeAllCheckmarks("Are you sure you want to remove all checkmarks?");
             },

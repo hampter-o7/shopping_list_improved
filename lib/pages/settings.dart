@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:shopping_list/classes/app_colors.dart';
+import 'package:shopping_list/classes/colors.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -13,7 +13,7 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  late final Function updateStoreList;
+  late Function updateStoreList;
 
   @override
   void didChangeDependencies() async {
@@ -26,6 +26,7 @@ class _SettingsState extends State<Settings> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        persist: false,
         action: SnackBarAction(
           label: 'Yes',
           onPressed: () async {
@@ -41,24 +42,33 @@ class _SettingsState extends State<Settings> {
             }
           },
         ),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final SettingsThemeData theme = SettingsThemeData(
+      settingsListBackground: AppColors.of(context).background,
+      settingsSectionBackground: AppColors.of(context).resolvedItemBackground,
+      settingsTileTextColor: AppColors.of(context).resolvedItemText,
+      leadingIconsColor: AppColors.of(context).resolvedItemText,
+    );
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text('Settings', style: TextStyle(color: AppColors.invertColor(AppColors.of(context).titleBackground))),
+        title: Text('SETTINGS', style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).titleBackground,
+        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.invertColor(AppColors.of(context).titleBackground)),
+          icon: Icon(Icons.arrow_back, color: AppColors.of(context).resolvedTitleText),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SettingsList(
+        lightTheme: theme,
+        darkTheme: theme,
         sections: [
           SettingsSection(
             tiles: [
@@ -87,6 +97,13 @@ class _SettingsState extends State<Settings> {
                     'Are you sure you want to delete all current data and import new data?',
                     false,
                   );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.color_lens),
+                title: const Text('Change color theme'),
+                onPressed: (context) async {
+                  Navigator.pushNamed(context, '/ColorPicker');
                 },
               ),
             ],

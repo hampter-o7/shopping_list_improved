@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
@@ -24,10 +25,24 @@ class _ItemListState extends State<ItemList> {
   List<Item> itemList = [];
   String storeName = 'Store';
   final textController = TextEditingController();
+  final SpeechToText speech = SpeechToText();
   late Store store;
   double progress = 0;
   bool alphaOrder = false;
   late StreamSubscription<bool> keyboardSubscription;
+  bool speechEnabled = false;
+  bool isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    initSpeech();
+  }
+
+  Future<void> initSpeech() async {
+    speechEnabled = await speech.initialize();
+    setState(() {});
+  }
 
   @override
   void didChangeDependencies() async {
@@ -126,12 +141,39 @@ class _ItemListState extends State<ItemList> {
                     autofocus: true,
                     controller: textController,
                     textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Name of new item',
-                      border: OutlineInputBorder(
+                      border: const OutlineInputBorder(
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(15.0),
                         ),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isListening ? Icons.mic : Icons.mic_off,
+                          color: AppColors.of(context).resolvedItemText,
+                        ),
+                        onPressed: () async {
+                          if (isListening) {
+                            await speech.stop();
+                            isListening = false;
+                          } else {
+                            if (!speechEnabled) return;
+                            await speech.listen(
+                              onResult: (result) {
+                                textController.text = result.recognizedWords;
+                                textController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: textController.text.length),
+                                );
+                                isListening = false;
+                                setModalState(() {});
+                              },
+                            );
+                            isListening = true;
+                          }
+                          debugPrint("$isListening");
+                          setModalState(() {});
+                        },
                       ),
                     ),
                   ),

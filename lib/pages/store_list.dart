@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/store.dart';
 import '../my_widgets/reorderable_card_list.dart';
@@ -21,13 +22,22 @@ class StoreList extends StatefulWidget {
 class _StoreListState extends State<StoreList> {
   List<Store> storeList = [];
   final textController = TextEditingController();
+  final SpeechToText speech = SpeechToText();
   bool alphaOrder = false;
   late StreamSubscription<bool> keyboardSubscription;
+  bool speechEnabled = false;
+  bool isListening = false;
 
   @override
   void initState() {
     super.initState();
+    initSpeech();
     loadStoresAndAlphaOrder();
+  }
+
+  Future<void> initSpeech() async {
+    speechEnabled = await speech.initialize();
+    setState(() {});
   }
 
   Future<void> loadStoresAndAlphaOrder() async {
@@ -71,39 +81,71 @@ class _StoreListState extends State<StoreList> {
         ),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Wrap(
-            children: [
-              TextField(
-                onSubmitted: (value) {
-                  addShopToList(textController.text);
-                  Navigator.pop(context);
-                },
-                autofocus: true,
-                controller: textController,
-                textAlign: TextAlign.center,
-                decoration: const InputDecoration(
-                  hintText: 'Name of new store',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(15.0),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Wrap(
+                children: [
+                  TextField(
+                    onSubmitted: (value) {
+                      addShopToList(textController.text);
+                      Navigator.pop(context);
+                    },
+                    autofocus: true,
+                    controller: textController,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      hintText: 'Name of new store',
+                      border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(15.0),
+                        ),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isListening ? Icons.mic : Icons.mic_off,
+                          color: AppColors.of(context).resolvedItemText,
+                        ),
+                        onPressed: () async {
+                          if (isListening) {
+                            await speech.stop();
+                            isListening = false;
+                          } else {
+                            if (!speechEnabled) return;
+                            await speech.listen(
+                              onResult: (result) {
+                                textController.text = result.recognizedWords;
+                                textController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: textController.text.length),
+                                );
+                                isListening = false;
+                                setModalState(() {});
+                              },
+                            );
+
+                            isListening = true;
+                          }
+                          debugPrint("$isListening");
+                          setModalState(() {});
+                        },
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 15),
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        addShopToList(textController.text);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Add'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 15),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    addShopToList(textController.text);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Add'),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

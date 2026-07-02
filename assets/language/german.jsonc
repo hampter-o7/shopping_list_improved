@@ -1,0 +1,59 @@
+// cSpell:language en,de
+{
+    "storeList": {
+        "title": "Geschäfte",
+        "addButton": "Neuen Laden hinzufügen",
+        "addNewHint": "Name des neuen Ladens",
+        "showAllItems": "Alle Artikel anzeigen"
+    },
+    "itemList": {
+        "addButton": "Neuen Artikel hinzufügen",
+        "addNewHint": "Name des neuen Artikels",
+        "oneTime": "Einmaliger Artikel",
+        "uncheckAll": "Alle Auswahl aufheben",
+        "alreadyExists": "Dieser Artikel befindet sich bereits in deiner Einkaufsliste für {storeName}.",
+        "uncheckAllConfirm": "Bist du sicher, dass du alle Auswählen aufheben möchtest?"
+    },
+    "allItemList": {
+        "title": "Alle Artikel"
+    },
+    "actions": {
+        "add": "Hinzufügen",
+        "yes": "Ja",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "changeName": "Name ändern",
+        "changeImage": "Bild ändern"
+    },
+    "settings": {
+        "title": "Einstellungen",
+        "deleteEverything": "Alle Daten löschen",
+        "deleteEverythingConfirm": "Bist du sicher, dass du alle Daten löschen möchtest?",
+        "export": "Daten exportieren",
+        "import": "Daten importieren",
+        "importConfirm": "Bist du sicher, dass du alle aktuellen Daten löschen und neue importieren möchtest?",
+        "colorTheme": "Farbschema ändern",
+        "language": "Sprache"
+    },
+    "colorPicker": {
+        "title": "Designauswahl",
+        "mandatory": "Pflichtfarben",
+        "optional": "Optionale Farben (aus Pflichtfarben abgeleitet)",
+        "background": "Hintergrund",
+        "primary": "Primärfarbe",
+        "secondary": "Sekundärfarbe",
+        "progressBar": "Fortschrittsbalken",
+        "titleText": "Titeltext",
+        "itemBackground": "Artikel-Hintergrund",
+        "itemText": "Artikeltext",
+        "itemCheckbox": "Checkbox",
+        "itemCrossed": "Durchgestrichener Artikeltext",
+        "itemCrossedLine": "Durchstreichungslinie",
+        "fabIcon": "Aktionsschaltfläche-Icon"
+    },
+    "colorPickerCard": {
+        "title": "Farbauswahl",
+        "heading": "Farbe auswählen",
+        "subheading": "Farbton auswählen"
+    }
+}

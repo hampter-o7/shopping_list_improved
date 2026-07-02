@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/store.dart';
@@ -91,7 +93,7 @@ class _StoreListState extends State<StoreList> {
                     controller: textController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      hintText: 'Name of new store',
+                      hintText: context.read<LanguageService>().text("storeList.addNewHint"),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isListening ? Icons.mic : Icons.mic_off,
@@ -132,14 +134,14 @@ class _StoreListState extends State<StoreList> {
                         textController.text = "";
                         Navigator.pop(context);
                       },
-                      child: const Text('Cancel'),
+                      child: Text(context.read<LanguageService>().text("actions.cancel")),
                     ),
                     FilledButton(
                       onPressed: () {
                         addShopToList(textController.text);
                         Navigator.pop(context);
                       },
-                      child: const Text('Add'),
+                      child: Text(context.read<LanguageService>().text("actions.add")),
                     ),
                   ],
                 ),
@@ -168,7 +170,8 @@ class _StoreListState extends State<StoreList> {
           },
           icon: Icon(Icons.settings, color: AppColors.of(context).resolvedTitleText, semanticLabel: 'Settings'),
         ),
-        title: Text('STORES', style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.watch<LanguageService>().text("storeList.title").toUpperCase(),
+            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
         centerTitle: true,
         backgroundColor: AppColors.of(context).resolvedTitleBackground,
         actions: [
@@ -237,7 +240,7 @@ class _StoreListState extends State<StoreList> {
         children: [
           SpeedDialChild(
             child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
-            label: 'Add new store',
+            label: context.watch<LanguageService>().text("storeList.addButton"),
             labelBackgroundColor: AppColors.of(context).resolvedFabFill,
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,
@@ -247,7 +250,7 @@ class _StoreListState extends State<StoreList> {
           ),
           SpeedDialChild(
             child: Icon(Icons.checklist_rounded, color: AppColors.of(context).resolvedFabIcon),
-            label: 'Show all items',
+            label: context.watch<LanguageService>().text("storeList.showAllItems"),
             labelBackgroundColor: AppColors.of(context).resolvedFabFill,
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,

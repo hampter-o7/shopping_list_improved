@@ -1,0 +1,59 @@
+// cSpell:language en,es
+{
+    "storeList": {
+        "title": "Tiendas",
+        "addButton": "Añadir nueva tienda",
+        "addNewHint": "Nombre de la nueva tienda",
+        "showAllItems": "Mostrar todos los artículos"
+    },
+    "itemList": {
+        "addButton": "Añadir nuevo artículo",
+        "addNewHint": "Nombre del nuevo artículo",
+        "oneTime": "Artículo único",
+        "uncheckAll": "Desmarcar todo",
+        "alreadyExists": "Este artículo ya está en tu lista de la tienda {storeName}.",
+        "uncheckAllConfirm": "¿Estás seguro de que quieres desmarcar todo?"
+    },
+    "allItemList": {
+        "title": "Todos los artículos"
+    },
+    "actions": {
+        "add": "Añadir",
+        "yes": "Sí",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "changeName": "Cambiar nombre",
+        "changeImage": "Cambiar imagen"
+    },
+    "settings": {
+        "title": "Configuración",
+        "deleteEverything": "Borrar todos los datos",
+        "deleteEverythingConfirm": "¿Estás seguro de que quieres borrar todos los datos?",
+        "export": "Exportar datos",
+        "import": "Importar datos",
+        "importConfirm": "¿Estás seguro de que quieres borrar todos los datos actuales e importar nuevos datos?",
+        "colorTheme": "Cambiar tema de color",
+        "language": "Idioma"
+    },
+    "colorPicker": {
+        "title": "Selector de tema",
+        "mandatory": "Colores obligatorios",
+        "optional": "Colores opcionales (derivados de los obligatorios)",
+        "background": "Fondo",
+        "primary": "Color principal",
+        "secondary": "Color secundario",
+        "progressBar": "Barra de progreso",
+        "titleText": "Texto del título",
+        "itemBackground": "Fondo del artículo",
+        "itemText": "Texto del artículo",
+        "itemCheckbox": "Casilla de verificación",
+        "itemCrossed": "Texto tachado",
+        "itemCrossedLine": "Línea de tachado",
+        "fabIcon": "Icono del botón de acción"
+    },
+    "colorPickerCard": {
+        "title": "Selector de color",
+        "heading": "Elegir color",
+        "subheading": "Elegir tono de color"
+    }
+}

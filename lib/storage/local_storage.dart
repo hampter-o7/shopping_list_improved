@@ -18,6 +18,21 @@ class Storage {
   static const String alphaOrderKey = 'alphaOrder';
   static const String themeModeKey = 'themeMode';
   static const String costumeThemeKey = 'costumeTheme';
+  static const String languageKey = 'language';
+
+  static Future<void> saveLanguage(String language) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(languageKey, language);
+  }
+
+  static Future<String> loadLanguage() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? language = prefs.getString(languageKey);
+    if (language == null) {
+      return "english";
+    }
+    return language;
+  }
 
   static Future<void> saveAlphaOrder(bool alphaOrder, int number) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();

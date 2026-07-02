@@ -1,0 +1,59 @@
+// cSpell:language en,fr
+{
+    "storeList": {
+        "title": "Magasins",
+        "addButton": "Ajouter un nouveau magasin",
+        "addNewHint": "Nom du nouveau magasin",
+        "showAllItems": "Afficher tous les articles"
+    },
+    "itemList": {
+        "addButton": "Ajouter un nouvel article",
+        "addNewHint": "Nom du nouvel article",
+        "oneTime": "Article unique",
+        "uncheckAll": "Tout désélectionner",
+        "alreadyExists": "Cet article est déjà dans ta liste de courses pour {storeName}.",
+        "uncheckAllConfirm": "Es-tu sûr de vouloir tout désélectionner ?"
+    },
+    "allItemList": {
+        "title": "Tous les articles"
+    },
+    "actions": {
+        "add": "Ajouter",
+        "yes": "Oui",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "changeName": "Changer le nom",
+        "changeImage": "Changer l'image"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "deleteEverything": "Supprimer toutes les données",
+        "deleteEverythingConfirm": "Es-tu sûr de vouloir supprimer toutes les données ?",
+        "export": "Exporter les données",
+        "import": "Importer les données",
+        "importConfirm": "Es-tu sûr de vouloir supprimer toutes les données actuelles et importer de nouvelles données ?",
+        "colorTheme": "Changer le thème de couleur",
+        "language": "Langue"
+    },
+    "colorPicker": {
+        "title": "Sélecteur de thème",
+        "mandatory": "Couleurs obligatoires",
+        "optional": "Couleurs optionnelles (dérivées des couleurs obligatoires)",
+        "background": "Arrière-plan",
+        "primary": "Couleur principale",
+        "secondary": "Couleur secondaire",
+        "progressBar": "Barre de progression",
+        "titleText": "Texte du titre",
+        "itemBackground": "Arrière-plan des articles",
+        "itemText": "Texte de l'article",
+        "itemCheckbox": "Case à cocher",
+        "itemCrossed": "Texte barré",
+        "itemCrossedLine": "Ligne de texte barré",
+        "fabIcon": "Icône du bouton d'action"
+    },
+    "colorPickerCard": {
+        "title": "Sélecteur de couleur",
+        "heading": "Choisir une couleur",
+        "subheading": "Choisir une nuance"
+    }
+}

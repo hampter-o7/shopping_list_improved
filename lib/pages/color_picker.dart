@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/color_picker_card.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/theme_manager.dart';
 
 class ColorPicker extends StatefulWidget {
@@ -93,7 +94,7 @@ class _ColorPickerState extends State<ColorPicker> {
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         title: Text(
-          'THEME PICKER',
+          context.read<LanguageService>().text("colorPicker.title").toUpperCase(),
           style: TextStyle(color: AppColors.of(context).resolvedTitleText),
         ),
         centerTitle: true,
@@ -151,91 +152,91 @@ class _ColorPickerState extends State<ColorPicker> {
             },
           ),
           Text(
-            "Mandatory colors",
+            context.read<LanguageService>().text("colorPicker.mandatory"),
             style: TextStyle(
               fontSize: 20,
               color: AppColors.of(context).resolvedItemText,
             ),
           ),
           ColorPickerCard(
-            name: "Background",
+            name: context.read<LanguageService>().text("colorPicker.background"),
             isNotMandatory: false,
             colorKey: AppColorKey.background,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Primary color",
+            name: context.read<LanguageService>().text("colorPicker.primary"),
             isNotMandatory: false,
             colorKey: AppColorKey.primaryColor,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Secondary color",
+            name: context.read<LanguageService>().text("colorPicker.secondary"),
             isNotMandatory: false,
             colorKey: AppColorKey.secondaryColor,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Progress bar",
+            name: context.read<LanguageService>().text("colorPicker.progressBar"),
             isNotMandatory: false,
             colorKey: AppColorKey.progressBar,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           Text(
-            "Optional colors (derived from mandatory)",
+            context.read<LanguageService>().text("colorPicker.optional"),
             style: TextStyle(
               fontSize: 16,
               color: AppColors.of(context).resolvedItemText,
             ),
           ),
           ColorPickerCard(
-            name: "Title text",
+            name: context.read<LanguageService>().text("colorPicker.titleText"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedTitleText,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Item background",
+            name: context.read<LanguageService>().text("colorPicker.itemBackground"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemBackground,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Item text",
+            name: context.read<LanguageService>().text("colorPicker.itemText"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemText,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Item checkbox",
+            name: context.read<LanguageService>().text("colorPicker.itemCheckbox"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCheckbox,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Crossed item text",
+            name: context.read<LanguageService>().text("colorPicker.itemCrossed"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCrossed,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Item crossed line",
+            name: context.read<LanguageService>().text("colorPicker.itemCrossedLine"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCrossedLine,
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
           ColorPickerCard(
-            name: "Action button icon",
+            name: context.read<LanguageService>().text("colorPicker.fabIcon"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedFabIcon,
             customColors: customColors,

@@ -2,6 +2,7 @@ import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/theme_manager.dart';
 
 class ColorPickerCard extends StatefulWidget {
@@ -75,9 +76,9 @@ class _ColorPickerCard extends State<ColorPickerCard> {
                 final Color newColor = await showColorPickerDialog(
                   context,
                   colorPicked,
-                  title: Text('ColorPicker', style: Theme.of(context).textTheme.titleLarge),
-                  heading: Text('Select color', style: Theme.of(context).textTheme.titleLarge),
-                  subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleSmall),
+                  title: Text(context.read<LanguageService>().text("colorPickerCard.title"), style: Theme.of(context).textTheme.titleLarge),
+                  heading: Text(context.read<LanguageService>().text("colorPickerCard.heading"), style: Theme.of(context).textTheme.titleLarge),
+                  subheading: Text(context.read<LanguageService>().text("colorPickerCard.subheading"), style: Theme.of(context).textTheme.titleSmall),
                   width: 50,
                   height: 50,
                   spacing: 4,

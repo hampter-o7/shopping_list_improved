@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/main.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -13,13 +17,32 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  List<String> languageFiles = [];
   late Function updateStoreList;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   loadLanguageFiles();
+  // }
+
   @override
-  void didChangeDependencies() async {
+  void didChangeDependencies() {
     super.didChangeDependencies();
     Map args = ModalRoute.of(context)!.settings.arguments as Map;
     updateStoreList = args['updateStoreList'];
+    loadLanguageFiles();
+  }
+
+  Future<void> loadLanguageFiles() async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final files = manifest.listAssets().where((key) => key.startsWith('assets/language/') && key.endsWith('.jsonc')).toList();
+    languageFiles = files;
+  }
+
+  String formatLanguageName(String path) {
+    final fileName = path.split('/').last.replaceAll('.jsonc', '');
+    return fileName[0].toUpperCase() + fileName.substring(1);
   }
 
   void showSnackbar(String message, bool isDelete) {
@@ -28,7 +51,7 @@ class _SettingsState extends State<Settings> {
         content: Text(message),
         persist: false,
         action: SnackBarAction(
-          label: 'Yes',
+          label: context.read<LanguageService>().text("actions.yes"),
           onPressed: () async {
             if (isDelete) {
               Storage.deleteAll();
@@ -58,7 +81,8 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text('SETTINGS', style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.read<LanguageService>().text("settings.title").toUpperCase(),
+            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
         centerTitle: true,
         backgroundColor: AppColors.of(context).resolvedTitleBackground,
         leading: IconButton(
@@ -74,36 +98,61 @@ class _SettingsState extends State<Settings> {
             tiles: [
               SettingsTile.navigation(
                 leading: const Icon(Icons.delete),
-                title: const Text('Delete everything'),
+                title: Text(context.read<LanguageService>().text("settings.deleteEverything")),
                 onPressed: (value) {
                   showSnackbar(
-                    'Are you sure you want to delete all the data?',
+                    context.read<LanguageService>().text("settings.deleteEverythingConfirm"),
                     true,
                   );
                 },
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.file_upload_outlined),
-                title: const Text('Export data'),
+                title: Text(context.read<LanguageService>().text("settings.export")),
                 onPressed: (value) {
                   Storage.exportAllData();
                 },
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.file_download_outlined),
-                title: const Text('Import data'),
-                onPressed: (value) async {
+                title: Text(context.read<LanguageService>().text("settings.import")),
+                onPressed: (value) {
                   showSnackbar(
-                    'Are you sure you want to delete all current data and import new data?',
+                    context.read<LanguageService>().text("settings.importConfirm"),
                     false,
                   );
                 },
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.color_lens),
-                title: const Text('Change color theme'),
-                onPressed: (context) async {
+                title: Text(context.read<LanguageService>().text("settings.colorTheme")),
+                onPressed: (context) {
                   Navigator.pushNamed(context, '/ColorPicker');
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.language),
+                title: Text(context.read<LanguageService>().text("settings.language")),
+                onPressed: (context) async {
+                  final result = await showDialog<String>(
+                    context: context,
+                    builder: (_) {
+                      return SimpleDialog(
+                        children: languageFiles.map((path) {
+                          final name = formatLanguageName(path);
+                          final value = path.split('/').last.replaceAll('.jsonc', '');
+                          return SimpleDialogOption(
+                            child: Text(name),
+                            onPressed: () => Navigator.pop(context, value),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  );
+                  if (result != null) {
+                    await language.load(result);
+                    Storage.saveLanguage(result);
+                  }
                 },
               ),
             ],

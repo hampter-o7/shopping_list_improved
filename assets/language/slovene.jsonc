@@ -1,0 +1,59 @@
+// cSpell:language en,sl
+{
+    "storeList": {
+        "title": "Trgovine",
+        "addButton": "Dodaj novo trgovino",
+        "addNewHint": "Ime nove trgovine",
+        "showAllItems": "Prikaži vse izdelke"
+    },
+    "itemList": {
+        "addButton": "Dodaj nov izdelek",
+        "addNewHint": "Ime novega izdelka",
+        "oneTime": "Enkratni izdelek",
+        "uncheckAll": "Počisti vsa potrditvena polja",
+        "alreadyExists": "Ta izdelek je že na seznamu za trgovino {storeName}.",
+        "uncheckAllConfirm": "Ali ste prepričani, da želite počistiti vsa potrditvena polja?"
+    },
+    "allItemList": {
+        "title": "Vsi izdelki"
+    },
+    "actions": {
+        "add": "Dodaj",
+        "yes": "Da",
+        "cancel": "Prekliči",
+        "delete": "Izbriši",
+        "changeName": "Spremeni ime",
+        "changeImage": "Spremeni sliko"
+    },
+    "settings": {
+        "title": "Nastavitve",
+        "deleteEverything": "Izbriši vse podatke",
+        "deleteEverythingConfirm": "Ali ste prepričani, da želite izbrisati vse podatke?",
+        "export": "Izvoz podatkov",
+        "import": "Uvoz podatkov",
+        "importConfirm": "Ali ste prepričani, da želite izbrisati vse trenutne podatke in uvoziti nove podatke?",
+        "colorTheme": "Spremeni barvno temo",
+        "language": "Jezik"
+    },
+    "colorPicker": {
+        "title": "Izbira teme",
+        "mandatory": "Obvezne barve",
+        "optional": "Neobvezne barve (izpeljane iz obveznih)",
+        "background": "Ozadje",
+        "primary": "Primarna barva",
+        "secondary": "Sekundarna barva",
+        "progressBar": "Kazalnik napredka",
+        "titleText": "Besedilo naslova",
+        "itemBackground": "Ozadje izdelkov",
+        "itemText": "Besedilo izdelka",
+        "itemCheckbox": "Potrditveno polje",
+        "itemCrossed": "Besedilo prečrtanega izdelka",
+        "itemCrossedLine": "Črta prečrtanega besedila",
+        "fabIcon": "Ikona akcijskega gumba"
+    },
+    "colorPickerCard": {
+        "title": "Izbira barve",
+        "heading": "Izberite barvo",
+        "subheading": "Izberite odtenek barve"
+    }
+}

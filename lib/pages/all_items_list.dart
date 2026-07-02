@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list_2/implicitly_animated_reorderable_list_2.dart';
 import 'package:implicitly_animated_reorderable_list_2/transitions.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 
 import '../my_widgets/all_item_card.dart';
 import '../storage/local_storage.dart';
@@ -64,7 +66,8 @@ class _AllItemsListState extends State<AllItemsList> {
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text('ALL ITEMS', style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.read<LanguageService>().text("allItemList.title").toUpperCase(),
+            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
         centerTitle: true,
         backgroundColor: AppColors.of(context).resolvedTitleBackground,
         leading: IconButton(

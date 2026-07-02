@@ -1,0 +1,59 @@
+// cSpell:language en,ru
+{
+    "storeList": {
+        "title": "Магазины",
+        "addButton": "Добавить новый магазин",
+        "addNewHint": "Название нового магазина",
+        "showAllItems": "Показать все товары"
+    },
+    "itemList": {
+        "addButton": "Добавить новый товар",
+        "addNewHint": "Название нового товара",
+        "oneTime": "Одноразовый товар",
+        "uncheckAll": "Снять все отметки",
+        "alreadyExists": "Этот товар уже есть в списке магазина {storeName}.",
+        "uncheckAllConfirm": "Вы уверены, что хотите снять все отметки?"
+    },
+    "allItemList": {
+        "title": "Все товары"
+    },
+    "actions": {
+        "add": "Добавить",
+        "yes": "Да",
+        "cancel": "Отмена",
+        "delete": "Удалить",
+        "changeName": "Изменить название",
+        "changeImage": "Изменить изображение"
+    },
+    "settings": {
+        "title": "Настройки",
+        "deleteEverything": "Удалить все данные",
+        "deleteEverythingConfirm": "Вы уверены, что хотите удалить все данные?",
+        "export": "Экспорт данных",
+        "import": "Импорт данных",
+        "importConfirm": "Вы уверены, что хотите удалить все текущие данные и импортировать новые?",
+        "colorTheme": "Изменить цветовую тему",
+        "language": "язык"
+    },
+    "colorPicker": {
+        "title": "Выбор темы",
+        "mandatory": "Обязательные цвета",
+        "optional": "Дополнительные цвета (на основе обязательных)",
+        "background": "Фон",
+        "primary": "Основной цвет",
+        "secondary": "Вторичный цвет",
+        "progressBar": "Индикатор прогресса",
+        "titleText": "Текст заголовка",
+        "itemBackground": "Фон товара",
+        "itemText": "Текст товара",
+        "itemCheckbox": "Чекбокс",
+        "itemCrossed": "Зачёркнутый текст",
+        "itemCrossedLine": "Линия зачёркивания",
+        "fabIcon": "Иконка кнопки действия"
+    },
+    "colorPickerCard": {
+        "title": "Выбор цвета",
+        "heading": "Выберите цвет",
+        "subheading": "Выберите оттенок"
+    }
+}

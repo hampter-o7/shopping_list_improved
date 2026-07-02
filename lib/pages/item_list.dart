@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -65,13 +67,13 @@ class _ItemListState extends State<ItemList> {
     );
   }
 
-  void removeAllCheckmarks(String message) {
+  void removeAllCheckmarks() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(context.read<LanguageService>().text("itemList.uncheckAllConfirm")),
         persist: false,
         action: SnackBarAction(
-          label: 'Yes',
+          label: context.read<LanguageService>().text("actions.yes"),
           onPressed: () {
             for (Item item in itemList) {
               debugPrint("SnackBar shown at ${DateTime.now()}");
@@ -87,10 +89,11 @@ class _ItemListState extends State<ItemList> {
   }
 
   Future<void> addItemToList(String itemName, bool isOneTimeItem) async {
+    String alreadyExists = context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": store.name});
     Item? item = await Storage.checkIfItemExists(itemName);
     if (item != null) {
       if (store.storeItemList.contains(item.id)) {
-        showSnackbar('This item is already on your ${store.name} shopping list.');
+        showSnackbar(alreadyExists);
         textController.clear();
         return;
       }
@@ -137,7 +140,7 @@ class _ItemListState extends State<ItemList> {
                     controller: textController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
-                      hintText: 'Name of new item',
+                      hintText: context.read<LanguageService>().text("itemList.addNewHint"),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isListening ? Icons.mic : Icons.mic_off,
@@ -171,7 +174,7 @@ class _ItemListState extends State<ItemList> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("One time item"),
+                      Text(context.read<LanguageService>().text("itemList.oneTime")),
                       Checkbox(
                         value: isOneTimeItem,
                         onChanged: (changed) {
@@ -192,14 +195,14 @@ class _ItemListState extends State<ItemList> {
                         textController.text = "";
                         Navigator.pop(context);
                       },
-                      child: const Text('Cancel'),
+                      child: Text(context.read<LanguageService>().text("actions.cancel")),
                     ),
                     FilledButton(
                       onPressed: () {
                         addItemToList(textController.text, isOneTimeItem);
                         Navigator.pop(context);
                       },
-                      child: const Text('Add'),
+                      child: Text(context.read<LanguageService>().text("actions.add")),
                     ),
                   ],
                 ),
@@ -376,7 +379,7 @@ class _ItemListState extends State<ItemList> {
         children: [
           SpeedDialChild(
             child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
-            label: 'Add new item',
+            label: context.read<LanguageService>().text("itemList.addButton"),
             labelBackgroundColor: AppColors.of(context).resolvedFabFill,
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,
@@ -386,12 +389,12 @@ class _ItemListState extends State<ItemList> {
           ),
           SpeedDialChild(
             child: Icon(Icons.deselect, color: AppColors.of(context).resolvedFabIcon),
-            label: 'Uncheck all',
+            label: context.read<LanguageService>().text("itemList.uncheckAll"),
             labelBackgroundColor: AppColors.of(context).resolvedFabFill,
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
-              removeAllCheckmarks("Are you sure you want to remove all checkmarks?");
+              removeAllCheckmarks();
             },
           ),
         ],

@@ -1,0 +1,59 @@
+// cSpell:language: en
+{
+    "storeList": {
+        "title": "Stores",
+        "addButton": "Add new store",
+        "addNewHint": "Name of new store",
+        "showAllItems": "Show all items"
+    },
+    "itemList": {
+        "addButton": "Add new item",
+        "addNewHint": "Name of new item",
+        "oneTime": "One time item",
+        "uncheckAll": "Uncheck all",
+        "alreadyExists": "This item is already on your {storeName} shopping list.",
+        "uncheckAllConfirm": "Are you sure you want to remove all checkmarks?"
+    },
+    "allItemList": {
+        "title": "All items"
+    },
+    "actions": {
+        "add": "Add",
+        "yes": "Yes",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "changeName": "Change name",
+        "changeImage": "Change image"
+    },
+    "settings": {
+        "title": "Settings",
+        "deleteEverything": "Delete all data",
+        "deleteEverythingConfirm": "Are you sure you want to delete all the data?",
+        "export": "Export data",
+        "import": "Import data",
+        "importConfirm": "Are you sure you want to delete all current data and import new data?",
+        "colorTheme": "Change color theme",
+        "language": "Language"
+    },
+    "colorPicker": {
+        "title": "Theme picker",
+        "mandatory": "Mandatory colors",
+        "optional": "Optional colors (derived from mandatory)",
+        "background": "Background",
+        "primary": "Primary color",
+        "secondary": "Secondary color",
+        "progressBar": "Progress bar",
+        "titleText": "Title text",
+        "itemBackground": "Item background",
+        "itemText": "Item text",
+        "itemCheckbox": "Item checkbox",
+        "itemCrossed": "Crossed item text",
+        "itemCrossedLine": "Item crossed line",
+        "fabIcon": "Action button icon"
+    },
+    "colorPickerCard": {
+        "title": "Color picker",
+        "heading": "Select color",
+        "subheading": "Select color shade"
+    }
+}

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 
 import '../classes/item.dart';
 import '../classes/store.dart';
@@ -33,12 +35,13 @@ class _ItemCard extends State<ItemCard> {
       setState(() {});
       return;
     }
+    String alreadyExists = context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": widget.store.name});
     Item? item = await Storage.checkIfItemExists(newName);
     if (item != null) {
       if (widget.list.any((element) => element.id == item.id)) {
         canChangeName = false;
         setState(() {});
-        showSnackbar('This item already exists on your ${widget.store.name} shopping list');
+        showSnackbar(alreadyExists);
         return;
       }
 
@@ -157,11 +160,13 @@ class _ItemCard extends State<ItemCard> {
               return <PopupMenuEntry<String>>[
                 PopupMenuItem<String>(
                   value: '1',
-                  child: Text('Change name', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
+                  child: Text(context.read<LanguageService>().text("actions.changeName"),
+                      style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
                 PopupMenuItem<String>(
                   value: '2',
-                  child: Text('Delete', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
+                  child:
+                      Text(context.read<LanguageService>().text("actions.delete"), style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
               ];
             },

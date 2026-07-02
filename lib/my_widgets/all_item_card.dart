@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/my_widgets/language_service.dart';
 
 import '../classes/item.dart';
 import '../storage/local_storage.dart';
@@ -135,11 +137,13 @@ class _ItemCard extends State<AllItemCard> {
               return <PopupMenuEntry<String>>[
                 PopupMenuItem<String>(
                   value: '1',
-                  child: Text('Change name', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
+                  child: Text(context.read<LanguageService>().text("actions.changeName"),
+                      style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
                 PopupMenuItem<String>(
                   value: '2',
-                  child: Text('Delete', style: TextStyle(color: AppColors.of(context).resolvedItemText)),
+                  child:
+                      Text(context.read<LanguageService>().text("actions.delete"), style: TextStyle(color: AppColors.of(context).resolvedItemText)),
                 ),
               ];
             },

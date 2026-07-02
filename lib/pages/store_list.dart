@@ -72,20 +72,15 @@ class _StoreListState extends State<StoreList> {
     setState(() {});
   }
 
-  Future<dynamic> showNewStoreSheet(BuildContext context) {
-    return showModalBottomSheet(
+  Future<dynamic> showNewStoreDialog(BuildContext context) {
+    return showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(15.0),
-        ),
-      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: Wrap(
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     onSubmitted: (value) {
@@ -97,11 +92,6 @@ class _StoreListState extends State<StoreList> {
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: 'Name of new store',
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(15.0),
-                        ),
-                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isListening ? Icons.mic : Icons.mic_off,
@@ -123,7 +113,6 @@ class _StoreListState extends State<StoreList> {
                                 setModalState(() {});
                               },
                             );
-
                             isListening = true;
                           }
                           debugPrint("$isListening");
@@ -132,18 +121,29 @@ class _StoreListState extends State<StoreList> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 15),
-                  Center(
-                    child: TextButton(
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FilledButton(
+                      onPressed: () {
+                        textController.text = "";
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
                       onPressed: () {
                         addShopToList(textController.text);
                         Navigator.pop(context);
                       },
                       child: const Text('Add'),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             );
           },
         );
@@ -242,7 +242,7 @@ class _StoreListState extends State<StoreList> {
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
-              showNewStoreSheet(context);
+              showNewStoreDialog(context);
             },
           ),
           SpeedDialChild(

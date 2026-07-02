@@ -117,21 +117,16 @@ class _ItemListState extends State<ItemList> {
     updateProgressBar();
   }
 
-  Future<dynamic> showNewItemSheet(BuildContext context) {
+  Future<dynamic> showNewItemDialog(BuildContext context) {
     bool isOneTimeItem = false;
-    return showModalBottomSheet(
+    return showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(15.0),
-        ),
-      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: Wrap(
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     onSubmitted: (value) {
@@ -143,11 +138,6 @@ class _ItemListState extends State<ItemList> {
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: 'Name of new item',
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(15.0),
-                        ),
-                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isListening ? Icons.mic : Icons.mic_off,
@@ -191,18 +181,29 @@ class _ItemListState extends State<ItemList> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  Center(
-                    child: TextButton(
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FilledButton(
+                      onPressed: () {
+                        textController.text = "";
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
                       onPressed: () {
                         addItemToList(textController.text, isOneTimeItem);
                         Navigator.pop(context);
                       },
-                      child: const Text('ADD'),
+                      child: const Text('Add'),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             );
           },
         );
@@ -380,7 +381,7 @@ class _ItemListState extends State<ItemList> {
             labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
             backgroundColor: AppColors.of(context).resolvedFabFill,
             onTap: () {
-              showNewItemSheet(context);
+              showNewItemDialog(context);
             },
           ),
           SpeedDialChild(

@@ -15,7 +15,8 @@
         "uncheckAllConfirm": "¿Estás seguro de que quieres desmarcar todo?"
     },
     "allItemList": {
-        "title": "Todos los artículos"
+        "title": "Todos los artículos",
+        "alreadyExists": "Este artículo ya está en tu lista de la compra."
     },
     "actions": {
         "add": "Añadir",

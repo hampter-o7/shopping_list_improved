@@ -15,7 +15,8 @@
         "uncheckAllConfirm": "Bist du sicher, dass du alle Auswählen aufheben möchtest?"
     },
     "allItemList": {
-        "title": "Alle Artikel"
+        "title": "Alle Artikel",
+        "alreadyExists": "Dieser Artikel befindet sich bereits in deiner Einkaufsliste."
     },
     "actions": {
         "add": "Hinzufügen",

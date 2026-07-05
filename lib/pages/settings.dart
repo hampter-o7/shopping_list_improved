@@ -20,12 +20,6 @@ class _SettingsState extends State<Settings> {
   List<String> languageFiles = [];
   late Function updateStoreList;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   loadLanguageFiles();
-  // }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -45,28 +39,36 @@ class _SettingsState extends State<Settings> {
     return fileName[0].toUpperCase() + fileName.substring(1);
   }
 
-  void showSnackbar(String message, bool isDelete) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        persist: false,
-        action: SnackBarAction(
-          label: context.read<LanguageService>().text("actions.yes"),
-          onPressed: () async {
-            if (isDelete) {
-              Storage.deleteAll();
-              List<Store> storeList = [];
-              updateStoreList(storeList);
-            } else {
-              await Storage.importNewData();
-              List<Store> storeList = await Storage.loadAllStores();
-              Storage.printAllSavedData();
-              updateStoreList(storeList);
-            }
-          },
-        ),
-        duration: const Duration(seconds: 5),
-      ),
+  Future<void> showConfirmationDialog(String message, bool isDelete) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          content: Text(message),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.read<LanguageService>().text("actions.cancel")),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                if (isDelete) {
+                  Storage.deleteAll();
+                  updateStoreList([]);
+                } else {
+                  await Storage.importNewData();
+                  List<Store> storeList = await Storage.loadAllStores();
+                  Storage.printAllSavedData();
+                  updateStoreList(storeList);
+                }
+              },
+              child: Text(context.read<LanguageService>().text("actions.yes")),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -79,14 +81,11 @@ class _SettingsState extends State<Settings> {
       leadingIconsColor: AppColors.of(context).resolvedItemText,
     );
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text(context.read<LanguageService>().text("settings.title").toUpperCase(),
-            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.read<LanguageService>().text("settings.title").toUpperCase()),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.of(context).resolvedTitleText),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -100,7 +99,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.delete),
                 title: Text(context.read<LanguageService>().text("settings.deleteEverything")),
                 onPressed: (value) {
-                  showSnackbar(
+                  showConfirmationDialog(
                     context.read<LanguageService>().text("settings.deleteEverythingConfirm"),
                     true,
                   );
@@ -117,7 +116,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.file_download_outlined),
                 title: Text(context.read<LanguageService>().text("settings.import")),
                 onPressed: (value) {
-                  showSnackbar(
+                  showConfirmationDialog(
                     context.read<LanguageService>().text("settings.importConfirm"),
                     false,
                   );
@@ -126,9 +125,7 @@ class _SettingsState extends State<Settings> {
               SettingsTile.navigation(
                 leading: const Icon(Icons.color_lens),
                 title: Text(context.read<LanguageService>().text("settings.colorTheme")),
-                onPressed: (context) {
-                  Navigator.pushNamed(context, '/ColorPicker');
-                },
+                onPressed: (context) => Navigator.pushNamed(context, '/ColorPicker'),
               ),
               SettingsTile.navigation(
                 leading: const Icon(Icons.language),

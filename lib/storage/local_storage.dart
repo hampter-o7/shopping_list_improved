@@ -18,6 +18,7 @@ class Storage {
   static const String alphaOrderKey = 'alphaOrder';
   static const String themeModeKey = 'themeMode';
   static const String costumeThemeKey = 'costumeTheme';
+  static const String customThemeKey = 'customTheme';
   static const String languageKey = 'language';
 
   static Future<void> saveLanguage(String language) async {
@@ -64,16 +65,20 @@ class Storage {
 
   static Future<void> saveCostumeTheme(ColorPalette colorPalette) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(costumeThemeKey, jsonEncode(colorPalette.toJson()));
+    await prefs.setString(customThemeKey, jsonEncode(colorPalette.toJson()));
   }
 
   static Future<ColorPalette?> loadCostumeTheme() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? costumeColorPalette = prefs.getString(costumeThemeKey);
-    if (costumeColorPalette == null) {
-      return null;
+    String? customColorPalette = prefs.getString(customThemeKey);
+    if (customColorPalette != null) {
+      return ColorPalette.fromJson(jsonDecode(customColorPalette) as Map<String, dynamic>);
     }
-    return ColorPalette.fromJson(jsonDecode(costumeColorPalette) as Map<String, dynamic>);
+    String? costumeColorPalette = prefs.getString(costumeThemeKey);
+    if (costumeColorPalette != null) {
+      return ColorPalette.fromJson(jsonDecode(costumeColorPalette) as Map<String, dynamic>);
+    }
+    return null;
   }
 
   static Future<void> deleteCostumeTheme() async {
@@ -285,55 +290,90 @@ class Storage {
   }
 
   static Future<void> exportAllData() async {
+    List<String> allJsonItems = [];
+    List<String> allJsonStores = [];
+    List<String> allAlphaOrder = ['false', 'false'];
+    int themeMode = 1;
+    String language = 'english';
+    ColorPalette? customTheme;
+
+    final prefs = await SharedPreferences.getInstance();
+
     try {
-      List<String> allJsonItems = [];
-      List<String> allJsonStores = [];
-      List<String> allAlphaOrder = [];
-
       bool alphaOrder1 = await loadAlphaOrder(1);
-      allAlphaOrder.add(alphaOrder1.toString());
       bool alphaOrder2 = await loadAlphaOrder(2);
-      allAlphaOrder.add(alphaOrder2.toString());
+      allAlphaOrder = [alphaOrder1.toString(), alphaOrder2.toString()];
+    } catch (e) {
+      debugPrint('ERROR exporting alphaOrder: $e');
+    }
 
-      final prefs = await SharedPreferences.getInstance();
+    try {
+      themeMode = await loadThemeMode();
+    } catch (e) {
+      debugPrint('ERROR exporting themeMode: $e');
+    }
+
+    try {
+      language = await loadLanguage();
+    } catch (e) {
+      debugPrint('ERROR exporting language: $e');
+    }
+
+    try {
+      customTheme = await loadCostumeTheme();
+    } catch (e) {
+      debugPrint('ERROR exporting customTheme: $e');
+    }
+
+    try {
       final keys = prefs.getKeys().where(
             (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix),
           );
       for (String key in keys) {
-        if (key.contains(itemKeyPrefix)) {
-          Item? item = await loadItem(key);
-          if (item != null) {
-            final value = {
-              'name': item.name,
-              'id': item.id,
-              'isChecked': item.isChecked,
-              'storeList': item.storeList,
-              'isOneTimeItem': item.isOneTimeItem,
-            };
-            final valueJson = json.encode(value);
-            allJsonItems.add(valueJson);
+        try {
+          if (key.contains(itemKeyPrefix)) {
+            Item? item = await loadItem(key);
+            if (item != null) {
+              final value = {
+                'name': item.name,
+                'id': item.id,
+                'isChecked': item.isChecked,
+                'storeList': item.storeList,
+                'isOneTimeItem': item.isOneTimeItem,
+              };
+              allJsonItems.add(json.encode(value));
+            }
+          } else {
+            Store? store = await loadStore(key);
+            if (store != null) {
+              final value = {
+                'name': store.name,
+                'id': store.id,
+                'order': store.order,
+                'imageLocation': store.imageLocation,
+                'storeItemList': store.storeItemList,
+              };
+              allJsonStores.add(json.encode(value));
+            }
           }
-        } else {
-          Store? store = await loadStore(key);
-          if (store != null) {
-            final value = {
-              'name': store.name,
-              'id': store.id,
-              'order': store.order,
-              'imageLocation': store.imageLocation,
-              'storeItemList': store.storeItemList
-            };
-            final valueJson = json.encode(value);
-            allJsonStores.add(valueJson);
-          }
+        } catch (e) {
+          debugPrint('ERROR exporting key $key: $e');
         }
       }
-      final allData = {
-        'stores': allJsonStores,
-        'items': allJsonItems,
-        'alphaOrder': allAlphaOrder,
-      };
+    } catch (e) {
+      debugPrint('ERROR reading keys for export: $e');
+    }
 
+    final allData = {
+      'stores': allJsonStores,
+      'items': allJsonItems,
+      'alphaOrder': allAlphaOrder,
+      'themeMode': themeMode,
+      'language': language,
+      'customTheme': customTheme,
+    };
+
+    try {
       final String? directoryPath = await FilePicker.getDirectoryPath();
 
       if (directoryPath != null) {
@@ -346,15 +386,20 @@ class Storage {
         }
       }
     } catch (e) {
-      debugPrint('ERROR');
+      debugPrint('ERROR writing export file: $e');
     }
   }
 
   static Future<void> importNewData() async {
     try {
       deleteAll();
-      String? filePath;
+    } catch (e) {
+      debugPrint('ERROR clearing existing data before import: $e');
+    }
 
+    String? filePath;
+
+    try {
       FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
@@ -363,58 +408,103 @@ class Storage {
       if (result != null && result.files.isNotEmpty) {
         filePath = result.files.first.path;
       }
+    } catch (e) {
+      debugPrint('ERROR picking import file: $e');
+      return;
+    }
 
-      if (filePath != null) {
-        String jsonData = await File(filePath).readAsString();
+    if (filePath == null) return;
 
-        Map<String, dynamic> data = json.decode(jsonData);
+    Map<String, dynamic> data;
+    try {
+      String jsonData = await File(filePath).readAsString();
+      data = json.decode(jsonData);
+    } catch (e) {
+      debugPrint('ERROR reading/parsing import file: $e');
+      return;
+    }
 
-        List<Store> stores = List<Store>.from(
-          data['stores'].map(
-            (storeJson) {
-              Map<String, dynamic> storeData = json.decode(storeJson);
-              return Store(
-                name: storeData['name'],
-                id: storeData['id'],
-                order: storeData['order'],
-                imageLocation: '',
-                storeItemList: List<int>.from(storeData['storeItemList']),
-              );
-            },
-          ),
-        );
-
+    try {
+      if (data['stores'] != null) {
+        List<Store> stores = [];
+        for (final storeJson in (data['stores'] as List)) {
+          try {
+            Map<String, dynamic> storeData = json.decode(storeJson);
+            stores.add(Store(
+              name: storeData['name'],
+              id: storeData['id'],
+              order: storeData['order'],
+              imageLocation: '',
+              storeItemList: List<int>.from(storeData['storeItemList']),
+            ));
+          } catch (e) {
+            debugPrint('ERROR importing a store: $e');
+          }
+        }
         saveAllStores(stores);
-
-        List<Item> items = List<Item>.from(
-          data['items'].map(
-            (itemJson) {
-              Map<String, dynamic> itemData = json.decode(itemJson);
-              return Item(
-                name: itemData['name'],
-                id: itemData['id'],
-                isChecked: itemData['isChecked'],
-                storeList: List<int>.from(itemData['storeList']),
-                isOneTimeItem: itemData['isOneTimeItem'] ?? false,
-              );
-            },
-          ),
-        );
-        saveAllItems(items);
-
-        List<bool> alphaOrderList = List<bool>.from(
-          data['alphaOrder'].map(
-            (alphaOrderJson) {
-              bool alphaOrderData = json.decode(alphaOrderJson);
-              return alphaOrderData;
-            },
-          ),
-        );
-        saveAlphaOrder(alphaOrderList[0], 1);
-        saveAlphaOrder(alphaOrderList[1], 2);
       }
     } catch (e) {
-      debugPrint('ERROR');
+      debugPrint('ERROR importing stores: $e');
+    }
+
+    try {
+      if (data['items'] != null) {
+        List<Item> items = [];
+        for (final itemJson in (data['items'] as List)) {
+          try {
+            Map<String, dynamic> itemData = json.decode(itemJson);
+            items.add(Item(
+              name: itemData['name'],
+              id: itemData['id'],
+              isChecked: itemData['isChecked'],
+              storeList: List<int>.from(itemData['storeList']),
+              isOneTimeItem: itemData['isOneTimeItem'] ?? false,
+            ));
+          } catch (e) {
+            debugPrint('ERROR importing an item: $e');
+          }
+        }
+        saveAllItems(items);
+      }
+    } catch (e) {
+      debugPrint('ERROR importing items: $e');
+    }
+
+    try {
+      if (data['alphaOrder'] != null) {
+        List<bool> alphaOrderList = List<bool>.from(
+          (data['alphaOrder'] as List).map((v) => json.decode(v) as bool),
+        );
+        if (alphaOrderList.isNotEmpty) saveAlphaOrder(alphaOrderList[0], 1);
+        if (alphaOrderList.length > 1) saveAlphaOrder(alphaOrderList[1], 2);
+      }
+    } catch (e) {
+      debugPrint('ERROR importing alphaOrder: $e');
+    }
+
+    try {
+      if (data['language'] != null) {
+        saveLanguage(data['language'] as String);
+      }
+    } catch (e) {
+      debugPrint('ERROR importing language: $e');
+    }
+
+    try {
+      if (data['themeMode'] != null) {
+        saveThemeMode(data['themeMode'] as int);
+      }
+    } catch (e) {
+      debugPrint('ERROR importing themeMode: $e');
+    }
+
+    try {
+      if (data['customTheme'] != null) {
+        ColorPalette customTheme = ColorPalette.fromJson(data['customTheme'] as Map<String, dynamic>);
+        saveCostumeTheme(customTheme);
+      }
+    } catch (e) {
+      debugPrint('ERROR importing customTheme: $e');
     }
   }
 

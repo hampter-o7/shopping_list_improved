@@ -15,7 +15,9 @@
         "uncheckAllConfirm": "Are you sure you want to remove all checkmarks?"
     },
     "allItemList": {
-        "title": "All items"
+        "title": "All items",
+        //TODO add to other languages
+        "alreadyExists": "This item is already on your shopping list."
     },
     "actions": {
         "add": "Add",

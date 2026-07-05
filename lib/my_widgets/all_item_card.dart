@@ -31,11 +31,12 @@ class _ItemCard extends State<AllItemCard> {
       setState(() {});
       return;
     }
+    String alreadyExists = context.read<LanguageService>().text("allItemList.alreadyExists");
     Item? item = await Storage.checkIfItemExists(newName);
     if (item != null) {
       canChangeName = false;
       setState(() {});
-      showSnackbar('This item already exists on your shopping list');
+      showSnackbar(alreadyExists);
       return;
     }
     widget.item.name = newName;
@@ -45,32 +46,12 @@ class _ItemCard extends State<AllItemCard> {
   }
 
   void showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 5),
-      ),
-    );
-  }
-
-  void handleMenuButtonPress(String value) {
-    switch (value) {
-      case '1':
-        textController.text = widget.item.name;
-        canChangeName = true;
-        setState(() {});
-        break;
-      case '2':
-        Storage.deleteItemFromAllStores(widget.item.id);
-        widget.removeItem(widget.item);
-        break;
-    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.of(context).resolvedItemBackground,
       child: Row(
         children: [
           Transform.scale(
@@ -89,13 +70,6 @@ class _ItemCard extends State<AllItemCard> {
                 Storage.saveItem(widget.item);
                 widget.update();
               },
-              fillColor: WidgetStateColor.resolveWith((states) => AppColors.of(context).resolvedItemBackground),
-              checkColor: AppColors.of(context).resolvedItemCheckbox,
-              side: BorderSide(
-                width: 2.0,
-                style: BorderStyle.solid,
-                color: AppColors.of(context).resolvedItemCheckbox,
-              ),
             ),
           ),
           Expanded(
@@ -131,24 +105,24 @@ class _ItemCard extends State<AllItemCard> {
                   ),
           ),
           PopupMenuButton<String>(
-            color: AppColors.of(context).resolvedItemBackground,
-            iconColor: AppColors.of(context).resolvedItemText,
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(
-                  value: '1',
-                  child: Text(context.read<LanguageService>().text("actions.changeName"),
-                      style: TextStyle(color: AppColors.of(context).resolvedItemText)),
-                ),
-                PopupMenuItem<String>(
-                  value: '2',
-                  child:
-                      Text(context.read<LanguageService>().text("actions.delete"), style: TextStyle(color: AppColors.of(context).resolvedItemText)),
-                ),
+                PopupMenuItem<String>(value: '1', child: Text(context.read<LanguageService>().text("actions.changeName"))),
+                PopupMenuItem<String>(value: '2', child: Text(context.read<LanguageService>().text("actions.delete"))),
               ];
             },
             onSelected: (String value) async {
-              handleMenuButtonPress(value);
+              switch (value) {
+                case '1':
+                  textController.text = widget.item.name;
+                  canChangeName = true;
+                  setState(() {});
+                  break;
+                case '2':
+                  Storage.deleteItemFromAllStores(widget.item.id);
+                  widget.removeItem(widget.item);
+                  break;
+              }
             },
           ),
         ],

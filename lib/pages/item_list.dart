@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
+import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/item.dart';
@@ -59,32 +60,35 @@ class _ItemListState extends State<ItemList> {
   }
 
   void showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 5),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
   }
 
-  void removeAllCheckmarks() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.read<LanguageService>().text("itemList.uncheckAllConfirm")),
-        persist: false,
-        action: SnackBarAction(
-          label: context.read<LanguageService>().text("actions.yes"),
-          onPressed: () {
-            for (Item item in itemList) {
-              debugPrint("SnackBar shown at ${DateTime.now()}");
-              item.isChecked = false;
-              Storage.saveItem(item);
-            }
-            updateProgressBar();
-          },
-        ),
-        duration: const Duration(seconds: 5),
-      ),
+  Future<void> removeAllCheckmarks() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          content: Text(context.read<LanguageService>().text("itemList.uncheckAllConfirm")),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.read<LanguageService>().text("actions.cancel")),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                for (Item item in itemList) {
+                  item.isChecked = false;
+                  Storage.saveItem(item);
+                }
+                updateProgressBar();
+              },
+              child: Text(context.read<LanguageService>().text("actions.yes")),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -186,25 +190,21 @@ class _ItemListState extends State<ItemList> {
                   ),
                 ],
               ),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
               actions: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    FilledButton(
-                      onPressed: () {
-                        textController.text = "";
-                        Navigator.pop(context);
-                      },
-                      child: Text(context.read<LanguageService>().text("actions.cancel")),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        addItemToList(textController.text, isOneTimeItem);
-                        Navigator.pop(context);
-                      },
-                      child: Text(context.read<LanguageService>().text("actions.add")),
-                    ),
-                  ],
+                FilledButton(
+                  onPressed: () {
+                    textController.text = "";
+                    Navigator.pop(context);
+                  },
+                  child: Text(context.read<LanguageService>().text("actions.cancel")),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    addItemToList(textController.text, isOneTimeItem);
+                    Navigator.pop(context);
+                  },
+                  child: Text(context.read<LanguageService>().text("actions.add")),
                 ),
               ],
             );
@@ -230,7 +230,6 @@ class _ItemListState extends State<ItemList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         title: Stack(
           alignment: Alignment.center,
@@ -244,17 +243,13 @@ class _ItemListState extends State<ItemList> {
                         height: 50,
                         child: Container(margin: const EdgeInsets.all(3), child: Image.file(File(store.imageLocation), fit: BoxFit.cover)))
                     : Container(),
-                Text(storeName, style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+                Text(storeName),
               ],
             ),
           ],
         ),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).resolvedTitleBackground,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.of(context).resolvedTitleText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -301,14 +296,7 @@ class _ItemListState extends State<ItemList> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.of(context).progressBar,
-                        ),
-                        backgroundColor: AppColors.of(context).background,
-                        minHeight: 20,
-                      ),
+                      child: LinearProgressIndicator(value: progress, minHeight: 20),
                     ),
                     Positioned(
                       left: 0,
@@ -374,28 +362,18 @@ class _ItemListState extends State<ItemList> {
         overlayOpacity: 0,
         icon: Icons.menu,
         activeIcon: Icons.close,
-        backgroundColor: AppColors.of(context).resolvedFabFill,
-        foregroundColor: AppColors.of(context).resolvedFabIcon,
         children: [
-          SpeedDialChild(
-            child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
-            label: context.read<LanguageService>().text("itemList.addButton"),
-            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
-            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
-            backgroundColor: AppColors.of(context).resolvedFabFill,
-            onTap: () {
-              showNewItemDialog(context);
-            },
+          speedDialChildCustom(
+            context: context,
+            icon: Icons.add,
+            labelKey: "itemList.addButton",
+            onTap: () => showNewItemDialog(context),
           ),
-          SpeedDialChild(
-            child: Icon(Icons.deselect, color: AppColors.of(context).resolvedFabIcon),
-            label: context.read<LanguageService>().text("itemList.uncheckAll"),
-            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
-            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
-            backgroundColor: AppColors.of(context).resolvedFabFill,
-            onTap: () {
-              removeAllCheckmarks();
-            },
+          speedDialChildCustom(
+            context: context,
+            icon: Icons.deselect,
+            labelKey: "itemList.uncheckAll",
+            onTap: () => removeAllCheckmarks(),
           ),
         ],
       ),

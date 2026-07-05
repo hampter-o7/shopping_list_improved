@@ -64,16 +64,10 @@ class _AllItemsListState extends State<AllItemsList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text(context.read<LanguageService>().text("allItemList.title").toUpperCase(),
-            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.read<LanguageService>().text("allItemList.title").toUpperCase()),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).resolvedTitleBackground,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.of(context).resolvedTitleText),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -99,14 +93,7 @@ class _AllItemsListState extends State<AllItemsList> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.of(context).progressBar,
-                        ),
-                        backgroundColor: AppColors.of(context).background,
-                        minHeight: 20,
-                      ),
+                      child: LinearProgressIndicator(value: progress, minHeight: 20),
                     ),
                     Positioned(
                       left: 0,
@@ -117,7 +104,7 @@ class _AllItemsListState extends State<AllItemsList> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.onColor(AppColors.of(context).background),
+                          color: AppColors.onColor(AppColors.of(context).progressBar),
                         ),
                       ),
                     ),

@@ -1,0 +1,60 @@
+// cSpell:language: en,ja
+{
+    "storeList": {
+        "title": "店舗",
+        "addButton": "新しい店舗を追加",
+        "addNewHint": "新しい店舗の名前",
+        "showAllItems": "すべてのアイテムを表示"
+    },
+    "itemList": {
+        "addButton": "新しいアイテムを追加",
+        "addNewHint": "新しいアイテムの名前",
+        "oneTime": "一回限りのアイテム",
+        "uncheckAll": "すべてのチェックを外す",
+        "alreadyExists": "このアイテムはすでに{storeName}の買い物リストに追加されています。",
+        "uncheckAllConfirm": "すべてのチェックを外してもよろしいですか?"
+    },
+    "allItemList": {
+        "title": "すべてのアイテム",
+        "alreadyExists": "このアイテムはすでに買い物リストに追加されています。"
+    },
+    "actions": {
+        "add": "追加",
+        "yes": "はい",
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "changeName": "名前を変更",
+        "changeImage": "画像を変更"
+    },
+    "settings": {
+        "title": "設定",
+        "deleteEverything": "すべてのデータを削除",
+        "deleteEverythingConfirm": "すべてのデータを削除してもよろしいですか?",
+        "export": "データをエクスポート",
+        "import": "データをインポート",
+        "importConfirm": "現在のすべてのデータを削除して新しいデータをインポートしてもよろしいですか?",
+        "colorTheme": "カラーテーマを変更",
+        "language": "言語"
+    },
+    "colorPicker": {
+        "title": "テーマ選択",
+        "mandatory": "必須の色",
+        "optional": "オプションの色(必須の色から派生)",
+        "background": "背景",
+        "primary": "プライマリカラー",
+        "secondary": "セカンダリカラー",
+        "progressBar": "プログレスバー",
+        "titleText": "タイトルテキスト",
+        "itemBackground": "アイテムの背景",
+        "itemText": "アイテムのテキスト",
+        "itemCheckbox": "アイテムのチェックボックス",
+        "itemCrossed": "取り消し線付きアイテムのテキスト",
+        "itemCrossedLine": "アイテムの取り消し線",
+        "fabIcon": "アクションボタンのアイコン"
+    },
+    "colorPickerCard": {
+        "title": "カラーピッカー",
+        "heading": "色を選択",
+        "subheading": "色の濃淡を選択"
+    }
+}

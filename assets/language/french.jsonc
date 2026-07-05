@@ -15,7 +15,8 @@
         "uncheckAllConfirm": "Es-tu sûr de vouloir tout désélectionner ?"
     },
     "allItemList": {
-        "title": "Tous les articles"
+        "title": "Tous les articles",
+        "alreadyExists": "Cet article est déjà dans ta liste de courses."
     },
     "actions": {
         "add": "Ajouter",

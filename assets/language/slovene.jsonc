@@ -15,7 +15,8 @@
         "uncheckAllConfirm": "Ali ste prepričani, da želite počistiti vsa potrditvena polja?"
     },
     "allItemList": {
-        "title": "Vsi izdelki"
+        "title": "Vsi izdelki",
+        "alreadyExists": "Ta izdelek je že na seznamu."
     },
     "actions": {
         "add": "Dodaj",

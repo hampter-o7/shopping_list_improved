@@ -6,6 +6,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/store.dart';
@@ -125,25 +126,21 @@ class _StoreListState extends State<StoreList> {
                   ),
                 ],
               ),
+              actionsAlignment: MainAxisAlignment.spaceBetween,
               actions: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    FilledButton(
-                      onPressed: () {
-                        textController.text = "";
-                        Navigator.pop(context);
-                      },
-                      child: Text(context.read<LanguageService>().text("actions.cancel")),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        addShopToList(textController.text);
-                        Navigator.pop(context);
-                      },
-                      child: Text(context.read<LanguageService>().text("actions.add")),
-                    ),
-                  ],
+                FilledButton(
+                  onPressed: () {
+                    textController.text = "";
+                    Navigator.pop(context);
+                  },
+                  child: Text(context.read<LanguageService>().text("actions.cancel")),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    addShopToList(textController.text);
+                    Navigator.pop(context);
+                  },
+                  child: Text(context.read<LanguageService>().text("actions.add")),
                 ),
               ],
             );
@@ -156,24 +153,13 @@ class _StoreListState extends State<StoreList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              '/Settings',
-              arguments: {
-                'updateStoreList': updateStoreList,
-              },
-            );
-          },
-          icon: Icon(Icons.settings, color: AppColors.of(context).resolvedTitleText, semanticLabel: 'Settings'),
+          onPressed: () => Navigator.pushNamed(context, '/Settings', arguments: {'updateStoreList': updateStoreList}),
+          icon: Icon(Icons.settings, semanticLabel: 'Settings'),
         ),
-        title: Text(context.watch<LanguageService>().text("storeList.title").toUpperCase(),
-            style: TextStyle(color: AppColors.of(context).resolvedTitleText)),
+        title: Text(context.watch<LanguageService>().text("storeList.title").toUpperCase()),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -235,31 +221,18 @@ class _StoreListState extends State<StoreList> {
         overlayOpacity: 0,
         icon: Icons.menu,
         activeIcon: Icons.close,
-        backgroundColor: AppColors.of(context).resolvedFabFill,
-        foregroundColor: AppColors.of(context).resolvedFabIcon,
         children: [
-          SpeedDialChild(
-            child: Icon(Icons.add, color: AppColors.of(context).resolvedFabIcon),
-            label: context.watch<LanguageService>().text("storeList.addButton"),
-            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
-            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
-            backgroundColor: AppColors.of(context).resolvedFabFill,
-            onTap: () {
-              showNewStoreDialog(context);
-            },
+          speedDialChildCustom(
+            context: context,
+            icon: Icons.add,
+            labelKey: "storeList.addButton",
+            onTap: () => showNewStoreDialog(context),
           ),
-          SpeedDialChild(
-            child: Icon(Icons.checklist_rounded, color: AppColors.of(context).resolvedFabIcon),
-            label: context.watch<LanguageService>().text("storeList.showAllItems"),
-            labelBackgroundColor: AppColors.of(context).resolvedFabFill,
-            labelStyle: TextStyle(color: AppColors.of(context).resolvedFabIcon),
-            backgroundColor: AppColors.of(context).resolvedFabFill,
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/AllItemsList',
-              );
-            },
+          speedDialChildCustom(
+            context: context,
+            icon: Icons.checklist_rounded,
+            labelKey: "storeList.showAllItems",
+            onTap: () => Navigator.pushNamed(context, '/AllItemsList'),
           ),
         ],
       ),

@@ -37,14 +37,9 @@ class _ColorPickerCard extends State<ColorPickerCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.of(context).resolvedItemBackground,
+      clipBehavior: Clip.antiAlias,
       child: ListTile(
-        title: Text(
-          widget.name,
-          style: TextStyle(
-            color: AppColors.of(context).resolvedItemText,
-          ),
-        ),
+        title: Text(widget.name),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -60,11 +55,7 @@ class _ColorPickerCard extends State<ColorPickerCard> {
                 setState(() {});
               },
               icon: Icon(!widget.isNotMandatory ? Icons.close : Icons.calculate),
-              style: ButtonStyle(
-                iconColor: WidgetStatePropertyAll(
-                  AppColors.of(context).resolvedItemText,
-                ),
-              ),
+              style: ButtonStyle(iconColor: WidgetStatePropertyAll(AppColors.of(context).resolvedItemText)),
             ),
             ColorIndicator(
               width: 40,
@@ -76,9 +67,18 @@ class _ColorPickerCard extends State<ColorPickerCard> {
                 final Color newColor = await showColorPickerDialog(
                   context,
                   colorPicked,
-                  title: Text(context.read<LanguageService>().text("colorPickerCard.title"), style: Theme.of(context).textTheme.titleLarge),
-                  heading: Text(context.read<LanguageService>().text("colorPickerCard.heading"), style: Theme.of(context).textTheme.titleLarge),
-                  subheading: Text(context.read<LanguageService>().text("colorPickerCard.subheading"), style: Theme.of(context).textTheme.titleSmall),
+                  title: Text(
+                    context.read<LanguageService>().text("colorPickerCard.title"),
+                    style: TextStyle(color: AppColors.of(context).itemText, fontSize: 28),
+                  ),
+                  heading: Text(
+                    context.read<LanguageService>().text("colorPickerCard.heading"),
+                    style: TextStyle(color: AppColors.of(context).itemText, fontSize: 20),
+                  ),
+                  subheading: Text(
+                    context.read<LanguageService>().text("colorPickerCard.subheading"),
+                    style: TextStyle(color: AppColors.of(context).itemText, fontSize: 16),
+                  ),
                   width: 50,
                   height: 50,
                   spacing: 4,

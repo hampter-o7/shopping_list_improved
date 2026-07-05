@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/color_picker_card.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/scroll_card.dart';
 import 'package:shopping_list/my_widgets/theme_manager.dart';
 
 class ColorPicker extends StatefulWidget {
@@ -91,14 +92,9 @@ class _ColorPickerState extends State<ColorPicker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
       appBar: AppBar(
-        title: Text(
-          context.read<LanguageService>().text("colorPicker.title").toUpperCase(),
-          style: TextStyle(color: AppColors.of(context).resolvedTitleText),
-        ),
+        title: Text(context.read<LanguageService>().text("colorPicker.title").toUpperCase()),
         centerTitle: true,
-        backgroundColor: AppColors.of(context).resolvedTitleBackground,
         actions: [
           Visibility(
             visible: kDebugMode,
@@ -114,13 +110,7 @@ class _ColorPickerState extends State<ColorPicker> {
             ),
           ),
         ],
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: AppColors.of(context).resolvedTitleText,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(10),
@@ -153,10 +143,7 @@ class _ColorPickerState extends State<ColorPicker> {
           ),
           Text(
             context.read<LanguageService>().text("colorPicker.mandatory"),
-            style: TextStyle(
-              fontSize: 20,
-              color: AppColors.of(context).resolvedItemText,
-            ),
+            style: TextStyle(fontSize: 20, color: AppColors.of(context).resolvedItemText),
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.background"),
@@ -188,10 +175,7 @@ class _ColorPickerState extends State<ColorPicker> {
           ),
           Text(
             context.read<LanguageService>().text("colorPicker.optional"),
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.of(context).resolvedItemText,
-            ),
+            style: TextStyle(fontSize: 16, color: AppColors.of(context).resolvedItemText),
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.titleText"),
@@ -242,6 +226,7 @@ class _ColorPickerState extends State<ColorPicker> {
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
+          const ScrollCard()
         ],
       ),
     );

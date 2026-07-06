@@ -21,7 +21,7 @@ class ThemeManager extends ChangeNotifier {
     final savedTheme = await Storage.loadThemeMode();
     _theme = AppTheme.values[savedTheme];
 
-    _customPalette = await Storage.loadCostumeTheme();
+    _customPalette = await Storage.loadCustomTheme();
 
     notifyListeners();
   }
@@ -123,10 +123,13 @@ class ThemeManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setCustomPalette(ColorPalette palette) async {
+  Future<void> setCustomPalette(ColorPalette? palette) async {
+    if (palette == null) {
+      return;
+    }
     _customPalette = palette;
 
-    await Storage.saveCostumeTheme(palette);
+    await Storage.saveCustomTheme(palette);
 
     if (_theme == AppTheme.custom) {
       notifyListeners();

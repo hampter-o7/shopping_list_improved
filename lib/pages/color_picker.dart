@@ -19,11 +19,6 @@ class _ColorPickerState extends State<ColorPicker> {
   AppTheme selectedTheme = AppTheme.light;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     ThemeManager themeManager = context.read<ThemeManager>();

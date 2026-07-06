@@ -26,8 +26,8 @@ class ItemCard extends StatefulWidget {
 }
 
 class _ItemCard extends State<ItemCard> {
-  final textController = TextEditingController();
   bool canChangeName = false;
+  final textController = TextEditingController();
 
   void handleChangeName(String newName, String oldName) async {
     if (newName == oldName) {
@@ -104,17 +104,11 @@ class _ItemCard extends State<ItemCard> {
                       setState(() {});
                     },
                     autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: widget.list[widget.index].name,
-                    ),
-                  )
+                    decoration: InputDecoration(hintText: widget.list[widget.index].name))
                 : Text(
                     widget.list[widget.index].name,
                     style: !widget.list[widget.index].isChecked
-                        ? TextStyle(
-                            color: AppColors.of(context).resolvedItemText,
-                            fontWeight: FontWeight.bold,
-                          )
+                        ? TextStyle(color: AppColors.of(context).resolvedItemText, fontWeight: FontWeight.bold)
                         : TextStyle(
                             color: AppColors.of(context).resolvedItemCrossed,
                             fontStyle: FontStyle.italic,

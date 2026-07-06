@@ -35,6 +35,11 @@ class Storage {
     return language;
   }
 
+  static Future<void> deleteLanguage() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(languageKey);
+  }
+
   static Future<void> saveAlphaOrder(bool alphaOrder, int number) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('$alphaOrderKey$number', alphaOrder.toString());
@@ -47,6 +52,12 @@ class Storage {
       return false;
     }
     return alphaOrderString.toLowerCase() == 'true';
+  }
+
+  static Future<void> deleteAlphaOrder() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove("${alphaOrderKey}1");
+    await prefs.remove("${alphaOrderKey}2");
   }
 
   static Future<void> saveThemeMode(int number) async {
@@ -63,17 +74,23 @@ class Storage {
     return themeMode;
   }
 
-  static Future<void> saveCostumeTheme(ColorPalette colorPalette) async {
+  static Future<void> deleteThemeMode() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(themeModeKey);
+  }
+
+  static Future<void> saveCustomTheme(ColorPalette colorPalette) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(customThemeKey, jsonEncode(colorPalette.toJson()));
   }
 
-  static Future<ColorPalette?> loadCostumeTheme() async {
+  static Future<ColorPalette?> loadCustomTheme() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? customColorPalette = prefs.getString(customThemeKey);
     if (customColorPalette != null) {
       return ColorPalette.fromJson(jsonDecode(customColorPalette) as Map<String, dynamic>);
     }
+    // legacy load
     String? costumeColorPalette = prefs.getString(costumeThemeKey);
     if (costumeColorPalette != null) {
       return ColorPalette.fromJson(jsonDecode(costumeColorPalette) as Map<String, dynamic>);
@@ -81,9 +98,10 @@ class Storage {
     return null;
   }
 
-  static Future<void> deleteCostumeTheme() async {
+  static Future<void> deleteCustomTheme() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove(costumeThemeKey);
+    await prefs.remove(customThemeKey);
+    await prefs.remove(costumeThemeKey); // legacy delete
   }
 
   static Future<void> saveAllStores(List<Store> stores) async {
@@ -320,7 +338,7 @@ class Storage {
     }
 
     try {
-      customTheme = await loadCostumeTheme();
+      customTheme = await loadCustomTheme();
     } catch (e) {
       debugPrint('ERROR exporting customTheme: $e');
     }
@@ -501,7 +519,7 @@ class Storage {
     try {
       if (data['customTheme'] != null) {
         ColorPalette customTheme = ColorPalette.fromJson(data['customTheme'] as Map<String, dynamic>);
-        saveCostumeTheme(customTheme);
+        saveCustomTheme(customTheme);
       }
     } catch (e) {
       debugPrint('ERROR importing customTheme: $e');
@@ -553,9 +571,7 @@ class Storage {
 
   static Future<void> deleteAll() async {
     final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys().where(
-          (key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix) || key.startsWith(alphaOrderKey),
-        );
+    final keys = prefs.getKeys().where((key) => key.startsWith(storeKeyPrefix) || key.startsWith(itemKeyPrefix));
     for (final key in keys) {
       if (key.contains(storeKeyPrefix)) {
         Store? store = await loadStore(key);
@@ -565,5 +581,9 @@ class Storage {
       }
       await prefs.remove(key);
     }
+    deleteLanguage();
+    deleteAlphaOrder();
+    deleteThemeMode();
+    deleteCustomTheme();
   }
 }

@@ -1,11 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:implicitly_animated_reorderable_list_2/implicitly_animated_reorderable_list_2.dart';
-import 'package:implicitly_animated_reorderable_list_2/transitions.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/classes/item.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/scroll_card.dart';
 
 import '../my_widgets/all_item_card.dart';
 import '../storage/local_storage.dart';
@@ -18,8 +17,8 @@ class AllItemsList extends StatefulWidget {
 }
 
 class _AllItemsListState extends State<AllItemsList> {
-  List<Item> allItemsList = [];
   double progress = 0;
+  List<Item> allItemsList = [];
 
   @override
   void didChangeDependencies() async {
@@ -69,15 +68,7 @@ class _AllItemsListState extends State<AllItemsList> {
         centerTitle: true,
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
-          Visibility(
-            visible: kDebugMode,
-            child: IconButton(
-              onPressed: () {
-                Storage.printAllSavedData();
-              },
-              icon: const Icon(Icons.print),
-            ),
-          ),
+          Visibility(visible: kDebugMode, child: IconButton(onPressed: () => Storage.printAllSavedData(), icon: const Icon(Icons.print))),
         ],
       ),
       body: Column(
@@ -93,19 +84,21 @@ class _AllItemsListState extends State<AllItemsList> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: LinearProgressIndicator(value: progress, minHeight: 20),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: progress),
+                        duration: const Duration(milliseconds: 1000),
+                        curve: Curves.easeInOut,
+                        builder: (context, value, child) => LinearProgressIndicator(value: value, minHeight: 20),
+                      ),
                     ),
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: 0,
+                      top: -2.5,
                       child: Text(
                         '${(progress * 100).toInt()}%',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.onColor(AppColors.of(context).progressBar),
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.onColor(AppColors.of(context).progressBar)),
                       ),
                     ),
                   ],
@@ -114,20 +107,19 @@ class _AllItemsListState extends State<AllItemsList> {
             ),
           ),
           Expanded(
-            child: Padding(
+            child: ListView.builder(
               padding: const EdgeInsets.all(10),
-              child: ImplicitlyAnimatedReorderableList<Item>(
-                items: allItemsList,
-                itemBuilder: (context, animation, item, index) {
-                  return Reorderable(
-                    key: ValueKey(index),
-                    child: AllItemCard(item: item, removeItem: removeItem, update: updateWindow),
-                    builder: (context, animation, inDrag) => const SizeFadeTransition(animation: AlwaysStoppedAnimation(1.0)),
+              itemCount: allItemsList.length + 1,
+              itemBuilder: (context, index) {
+                if (index < allItemsList.length) {
+                  return AllItemCard(
+                    item: allItemsList[index],
+                    removeItem: removeItem,
+                    update: updateWindow,
                   );
-                },
-                areItemsTheSame: (a, b) => false,
-                onReorderFinished: (Item item, int from, int to, List<Item> newItems) {},
-              ),
+                }
+                return const ScrollCard();
+              },
             ),
           ),
         ],

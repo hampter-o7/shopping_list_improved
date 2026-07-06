@@ -23,13 +23,12 @@ class StoreList extends StatefulWidget {
 }
 
 class _StoreListState extends State<StoreList> {
-  List<Store> storeList = [];
-  final textController = TextEditingController();
-  final SpeechToText speech = SpeechToText();
   bool alphaOrder = false;
-  late StreamSubscription<bool> keyboardSubscription;
   bool speechEnabled = false;
   bool isListening = false;
+  final textController = TextEditingController();
+  final SpeechToText speech = SpeechToText();
+  List<Store> storeList = [];
 
   @override
   void initState() {
@@ -161,15 +160,7 @@ class _StoreListState extends State<StoreList> {
         title: Text(context.watch<LanguageService>().text("storeList.title").toUpperCase()),
         centerTitle: true,
         actions: [
-          Visibility(
-            visible: kDebugMode,
-            child: IconButton(
-              onPressed: () {
-                Storage.printAllSavedData();
-              },
-              icon: const Icon(Icons.print),
-            ),
-          ),
+          Visibility(visible: kDebugMode, child: IconButton(onPressed: () => Storage.printAllSavedData(), icon: const Icon(Icons.print))),
           Semantics(
             container: true,
             label: 'Alphabetical switch',
@@ -206,16 +197,11 @@ class _StoreListState extends State<StoreList> {
                       index: index,
                       removeStore: removeStore,
                     );
-                  } else {
-                    return const ScrollCard();
                   }
+                  return const ScrollCard();
                 },
               )
-            : ReorderableCardList(
-                list: storeList,
-                store: Store.empty(),
-                updateProgressBarOrRemoveStore: removeStore,
-              ),
+            : ReorderableCardList(list: storeList, store: Store.empty(), updateProgressBarOrRemoveStore: removeStore),
       ),
       floatingActionButton: SpeedDial(
         overlayOpacity: 0,

@@ -20,6 +20,7 @@ class ReorderableCardList<T> extends StatefulWidget {
     required this.store,
     required this.updateProgressBarOrRemoveStore,
   });
+
   @override
   State<ReorderableCardList> createState() => _ReorderableCardListState();
 }
@@ -36,17 +37,18 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
         return indexA.compareTo(indexB);
       });
     }
+
     final List<Widget> cards = <Widget>[
       for (int index = 0; index < widget.list.length; index++)
         widget.list[index] is Store
             ? StoreCard(
-                key: Key('$index'),
+                key: ValueKey('store-${(widget.list[index] as Store).id}'),
                 store: widget.list[index],
                 index: index,
                 removeStore: widget.updateProgressBarOrRemoveStore,
               )
             : ItemCard(
-                key: Key('$index'),
+                key: ValueKey('item-${(widget.list[index] as Item).id}'),
                 list: widget.list as List<Item>,
                 store: widget.store,
                 index: index,
@@ -54,57 +56,48 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
               )
     ];
 
-    cards.add(const ScrollCard());
+    final draggableCards = [for (int i = 0; i < cards.length; i++) ReorderableDragStartListener(key: cards[i].key, index: i, child: cards[i])];
+
+    const scrollCard = KeyedSubtree(key: Key('emptyCard'), child: ScrollCard());
+
+    final children = [...draggableCards, scrollCard];
 
     Widget proxyDecorator(Widget child, int index, Animation<double> animation) {
-      if (index == cards.length - 1) {
-        return child;
-      }
       return AnimatedBuilder(
         animation: animation,
         builder: (BuildContext context, Widget? child) {
           final double animValue = Curves.easeInOut.transform(animation.value);
           final double scale = lerpDouble(1, 1.02, animValue)!;
-          return Transform.scale(
-            scale: scale,
-            child: child,
-          );
+          return Transform.scale(scale: scale, child: child);
         },
         child: child,
       );
     }
 
     return ReorderableListView(
+      buildDefaultDragHandles: false,
       proxyDecorator: proxyDecorator,
       onReorderItem: (int oldIndex, int newIndex) {
-        if (oldIndex < cards.length - 1) {
-          final item = widget.list.removeAt(oldIndex);
-          widget.list.insert(newIndex, item);
-          List<int> idList = [];
-          for (int i = 0; i < widget.list.length; i++) {
-            if (widget.list[i] is Store) {
-              (widget.list[i] as Store).order = i;
-              Storage.saveStore(widget.list[i]);
-            } else if (widget.list[i] is Item) {
-              idList.add(widget.list[i].id);
-            }
+        final item = widget.list.removeAt(oldIndex);
+        widget.list.insert(newIndex, item);
+
+        List<int> idList = [];
+        for (int i = 0; i < widget.list.length; i++) {
+          if (widget.list[i] is Store) {
+            (widget.list[i] as Store).order = i;
+            Storage.saveStore(widget.list[i]);
+          } else if (widget.list[i] is Item) {
+            idList.add(widget.list[i].id);
           }
-          if (widget.list.isNotEmpty && widget.list[0] is Item) {
-            widget.store.storeItemList = idList;
-            Storage.saveStore(widget.store);
-          }
-          setState(() {});
         }
+        if (widget.list.isNotEmpty && widget.list[0] is Item) {
+          widget.store.storeItemList = idList;
+          Storage.saveStore(widget.store);
+        }
+
+        setState(() {});
       },
-      children: [
-        for (int index = 0; index < cards.length - 1; index++) cards[index],
-        GestureDetector(
-          excludeFromSemantics: true,
-          key: const Key('emptyCard'),
-          onLongPress: () {},
-          child: cards.last,
-        ),
-      ],
+      children: children,
     );
   }
 }

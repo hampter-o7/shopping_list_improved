@@ -25,16 +25,16 @@ class ItemList extends StatefulWidget {
 }
 
 class _ItemListState extends State<ItemList> {
-  List<Item> itemList = [];
+  bool alphaOrder = false;
+  // TODO implement other language recognition
+  bool speechEnabled = false;
+  bool isListening = false;
+  double progress = 0;
   String storeName = 'Store';
   final textController = TextEditingController();
   final SpeechToText speech = SpeechToText();
   late Store store;
-  double progress = 0;
-  bool alphaOrder = false;
-  late StreamSubscription<bool> keyboardSubscription;
-  bool speechEnabled = false;
-  bool isListening = false;
+  List<Item> itemList = [];
 
   @override
   void initState() {
@@ -59,37 +59,17 @@ class _ItemListState extends State<ItemList> {
     updateProgressBar();
   }
 
-  void showSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
-  }
-
-  Future<void> removeAllCheckmarks() async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          content: Text(context.read<LanguageService>().text("itemList.uncheckAllConfirm")),
-          actionsAlignment: MainAxisAlignment.spaceBetween,
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(context.read<LanguageService>().text("actions.cancel")),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                for (Item item in itemList) {
-                  item.isChecked = false;
-                  Storage.saveItem(item);
-                }
-                updateProgressBar();
-              },
-              child: Text(context.read<LanguageService>().text("actions.yes")),
-            ),
-          ],
-        );
-      },
-    );
+  void updateProgressBar() {
+    if (itemList.isEmpty) {
+      progress = 0;
+    } else {
+      int numberOfIsChecked = 0;
+      for (Item item in itemList) {
+        if (item.isChecked) numberOfIsChecked++;
+      }
+      progress = numberOfIsChecked / itemList.length;
+    }
+    setState(() {});
   }
 
   Future<void> addItemToList(String itemName, bool isOneTimeItem) async {
@@ -124,6 +104,39 @@ class _ItemListState extends State<ItemList> {
     updateProgressBar();
   }
 
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
+  }
+
+  Future<void> removeAllCheckmarksDialog() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          content: Text(context.read<LanguageService>().text("itemList.uncheckAllConfirm")),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.read<LanguageService>().text("actions.cancel")),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                for (Item item in itemList) {
+                  item.isChecked = false;
+                  Storage.saveItem(item);
+                }
+                updateProgressBar();
+              },
+              child: Text(context.read<LanguageService>().text("actions.yes")),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<dynamic> showNewItemDialog(BuildContext context) {
     bool isOneTimeItem = false;
     return showDialog(
@@ -146,10 +159,7 @@ class _ItemListState extends State<ItemList> {
                     decoration: InputDecoration(
                       hintText: context.read<LanguageService>().text("itemList.addNewHint"),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          isListening ? Icons.mic : Icons.mic_off,
-                          color: AppColors.of(context).resolvedItemText,
-                        ),
+                        icon: Icon(isListening ? Icons.mic : Icons.mic_off, color: AppColors.of(context).resolvedItemText),
                         onPressed: () async {
                           if (isListening) {
                             await speech.stop();
@@ -214,19 +224,6 @@ class _ItemListState extends State<ItemList> {
     );
   }
 
-  void updateProgressBar() {
-    if (itemList.isEmpty) {
-      progress = 0;
-    } else {
-      int numberOfIsChecked = 0;
-      for (Item item in itemList) {
-        if (item.isChecked) numberOfIsChecked++;
-      }
-      progress = numberOfIsChecked / itemList.length;
-    }
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -241,7 +238,11 @@ class _ItemListState extends State<ItemList> {
                     ? SizedBox(
                         width: 50,
                         height: 50,
-                        child: Container(margin: const EdgeInsets.all(3), child: Image.file(File(store.imageLocation), fit: BoxFit.cover)))
+                        child: Container(
+                          margin: const EdgeInsets.all(3),
+                          child: Image.file(File(store.imageLocation), fit: BoxFit.contain),
+                        ),
+                      )
                     : Container(),
                 Text(storeName),
               ],
@@ -251,15 +252,7 @@ class _ItemListState extends State<ItemList> {
         centerTitle: true,
         leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
-          Visibility(
-            visible: kDebugMode,
-            child: IconButton(
-              onPressed: () {
-                Storage.printAllSavedData();
-              },
-              icon: const Icon(Icons.print),
-            ),
-          ),
+          Visibility(visible: kDebugMode, child: IconButton(onPressed: () => Storage.printAllSavedData(), icon: const Icon(Icons.print))),
           Semantics(
             container: true,
             label: 'Alphabetical switch',
@@ -296,12 +289,19 @@ class _ItemListState extends State<ItemList> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
-                      child: LinearProgressIndicator(value: progress, minHeight: 20),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0, end: progress),
+                        duration: const Duration(milliseconds: 1000),
+                        curve: Curves.easeInOut,
+                        builder: (context, value, child) {
+                          return LinearProgressIndicator(value: value, minHeight: 20);
+                        },
+                      ),
                     ),
                     Positioned(
                       left: 0,
                       right: 0,
-                      top: 0,
+                      top: -2.5,
                       child: Text(
                         '${(progress * 100).toInt()}%',
                         textAlign: TextAlign.center,
@@ -334,26 +334,16 @@ class _ItemListState extends State<ItemList> {
                             }
                           },
                         );
-                        return ItemCard(
-                          list: itemList,
-                          store: store,
-                          index: index,
-                          updateProgressBar: updateProgressBar,
-                        );
-                      } else {
-                        return const ScrollCard();
+                        return ItemCard(list: itemList, store: store, index: index, updateProgressBar: updateProgressBar);
                       }
+                      return const ScrollCard();
                     },
                   ),
                 )
               : Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: ReorderableCardList(
-                      list: itemList,
-                      store: store,
-                      updateProgressBarOrRemoveStore: updateProgressBar,
-                    ),
+                    child: ReorderableCardList(list: itemList, store: store, updateProgressBarOrRemoveStore: updateProgressBar),
                   ),
                 ),
         ],
@@ -369,12 +359,7 @@ class _ItemListState extends State<ItemList> {
             labelKey: "itemList.addButton",
             onTap: () => showNewItemDialog(context),
           ),
-          speedDialChildCustom(
-            context: context,
-            icon: Icons.deselect,
-            labelKey: "itemList.uncheckAll",
-            onTap: () => removeAllCheckmarks(),
-          ),
+          speedDialChildCustom(context: context, icon: Icons.deselect, labelKey: "itemList.uncheckAll", onTap: () => removeAllCheckmarksDialog()),
         ],
       ),
     );

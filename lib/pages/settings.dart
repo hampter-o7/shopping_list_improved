@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/main.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/theme_manager.dart';
 
 import '../classes/store.dart';
 import '../storage/local_storage.dart';
@@ -54,15 +55,17 @@ class _SettingsState extends State<Settings> {
             FilledButton(
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
+                ThemeManager themeManager = context.read<ThemeManager>();
                 if (isDelete) {
-                  Storage.deleteAll();
-                  updateStoreList([]);
+                  await Storage.deleteAll();
                 } else {
                   await Storage.importNewData();
-                  List<Store> storeList = await Storage.loadAllStores();
                   Storage.printAllSavedData();
-                  updateStoreList(storeList);
                 }
+                themeManager.setTheme(AppTheme.values[await Storage.loadThemeMode()]);
+                themeManager.setCustomPalette(await Storage.loadCustomTheme());
+                List<Store> storeList = await Storage.loadAllStores();
+                updateStoreList(storeList);
               },
               child: Text(context.read<LanguageService>().text("actions.yes")),
             ),
@@ -99,10 +102,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.delete),
                 title: Text(context.read<LanguageService>().text("settings.deleteEverything")),
                 onPressed: (value) {
-                  showConfirmationDialog(
-                    context.read<LanguageService>().text("settings.deleteEverythingConfirm"),
-                    true,
-                  );
+                  showConfirmationDialog(context.read<LanguageService>().text("settings.deleteEverythingConfirm"), true);
                 },
               ),
               SettingsTile.navigation(
@@ -116,10 +116,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.file_download_outlined),
                 title: Text(context.read<LanguageService>().text("settings.import")),
                 onPressed: (value) {
-                  showConfirmationDialog(
-                    context.read<LanguageService>().text("settings.importConfirm"),
-                    false,
-                  );
+                  showConfirmationDialog(context.read<LanguageService>().text("settings.importConfirm"), false);
                 },
               ),
               SettingsTile.navigation(

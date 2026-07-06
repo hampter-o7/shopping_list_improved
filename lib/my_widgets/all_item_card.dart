@@ -22,8 +22,8 @@ class AllItemCard extends StatefulWidget {
 }
 
 class _ItemCard extends State<AllItemCard> {
-  final textController = TextEditingController();
   bool canChangeName = false;
+  final textController = TextEditingController();
 
   void handleChangeName(String newName, String oldName) async {
     if (newName == oldName) {
@@ -76,25 +76,18 @@ class _ItemCard extends State<AllItemCard> {
             child: canChangeName
                 ? TextField(
                     controller: textController,
-                    onSubmitted: (newName) async {
-                      handleChangeName(newName, widget.item.name);
-                    },
+                    onSubmitted: (newName) async => handleChangeName(newName, widget.item.name),
                     onTapOutside: (oldName) {
                       canChangeName = false;
                       setState(() {});
                     },
                     autofocus: true,
-                    decoration: InputDecoration(
-                      hintText: widget.item.name,
-                    ),
+                    decoration: InputDecoration(hintText: widget.item.name),
                   )
                 : Text(
                     widget.item.name,
                     style: !widget.item.isChecked
-                        ? TextStyle(
-                            color: AppColors.of(context).resolvedItemText,
-                            fontWeight: FontWeight.bold,
-                          )
+                        ? TextStyle(color: AppColors.of(context).resolvedItemText, fontWeight: FontWeight.bold)
                         : TextStyle(
                             color: AppColors.of(context).resolvedItemCrossed,
                             fontStyle: FontStyle.italic,

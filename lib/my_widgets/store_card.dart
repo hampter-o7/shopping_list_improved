@@ -24,8 +24,8 @@ class StoreCard extends StatefulWidget {
 }
 
 class _StoreCard extends State<StoreCard> {
-  final textController = TextEditingController();
   bool canChangeName = false;
+  final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -50,16 +50,14 @@ class _StoreCard extends State<StoreCard> {
                         setState(() {});
                       },
                       autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: widget.store.name,
-                      ),
+                      decoration: InputDecoration(hintText: widget.store.name),
                     )
                   : Text(widget.store.name),
               leading: widget.store.imageLocation.isNotEmpty
                   ? Container(
                       margin: const EdgeInsets.all(3),
                       child: File(widget.store.imageLocation).existsSync()
-                          ? Image.file(File(widget.store.imageLocation))
+                          ? Image.file(File(widget.store.imageLocation), fit: BoxFit.contain)
                           : Icon(Icons.shopping_cart_rounded),
                     )
                   : Icon(Icons.shopping_cart_rounded),

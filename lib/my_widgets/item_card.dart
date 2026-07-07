@@ -1,70 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/classes/store.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
-
-import '../classes/item.dart';
-import '../classes/store.dart';
-import '../storage/local_storage.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class ItemCard extends StatefulWidget {
-  final List<Item> list;
-  final Store store;
-  final int index;
-  final Function updateProgressBar;
+  final bool _isAllItemCard;
+  final Item _item;
+  final List<Item> _list;
+  final Function _update;
+  final Store? _store;
 
   const ItemCard({
     super.key,
-    required this.list,
-    required this.store,
-    required this.index,
-    required this.updateProgressBar,
-  });
+    required bool isAllItemCard,
+    required Item item,
+    required List<Item> list,
+    required Function update,
+    Store? store,
+  })  : _isAllItemCard = isAllItemCard,
+        _item = item,
+        _list = list,
+        _update = update,
+        _store = store;
 
   @override
   State<ItemCard> createState() => _ItemCard();
 }
 
 class _ItemCard extends State<ItemCard> {
-  bool canChangeName = false;
-  final textController = TextEditingController();
+  bool _canChangeName = false;
+  final _textController = TextEditingController();
 
-  void handleChangeName(String newName, String oldName) async {
+  void _handleChangeName(String newName, String oldName) async {
     if (newName == oldName) {
-      canChangeName = false;
+      _canChangeName = false;
       setState(() {});
       return;
     }
-    String alreadyExists = context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": widget.store.name});
+
+    String alreadyExists = widget._isAllItemCard
+        ? context.read<LanguageService>().text("allItemList.alreadyExists")
+        : context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": widget._store!.name});
     Item? item = await Storage.checkIfItemExists(newName);
     if (item != null) {
-      if (widget.list.any((element) => element.id == item.id)) {
-        canChangeName = false;
+      if (widget._list.any((element) => element.id == item.id)) {
+        _canChangeName = false;
         setState(() {});
-        showSnackbar(alreadyExists);
+        _showSnackbar(alreadyExists);
         return;
       }
-
-      if (widget.list[widget.index].storeList.length < 2) {
-        Storage.deleteItem(widget.list[widget.index].id, widget.store.id);
-      } else {
-        widget.list[widget.index].storeList.remove(widget.store.id);
-        widget.store.storeItemList.removeAt(widget.index);
-        Storage.saveItem(widget.list[widget.index]);
+      if (!widget._isAllItemCard) {
+        if (widget._item.storeList.length < 2) {
+          Storage.deleteItem(widget._item.id, widget._store!.id);
+        } else {
+          widget._item.storeList.remove(widget._store!.id);
+          widget._store!.storeItemList.removeAt(widget._list.indexOf(widget._item));
+          widget._store!.storeItemList.removeAt(widget._list.indexOf(widget._item));
+          Storage.saveItem(widget._item);
+        }
+        widget._list.removeAt(widget._list.indexOf(widget._item));
+        widget._list.insert(widget._list.indexOf(widget._item), item);
+        item.storeList.add(widget._store!.id);
+        widget._store!.storeItemList.insert(widget._list.indexOf(widget._item), item.id);
+        await Storage.saveStore(widget._store!);
       }
-      widget.list.removeAt(widget.index);
-      widget.list.insert(widget.index, item);
-      item.storeList.add(widget.store.id);
-      widget.store.storeItemList.insert(widget.index, item.id);
-      await Storage.saveStore(widget.store);
     }
-    widget.list[widget.index].name = newName;
-    await Storage.saveItem(widget.list[widget.index]);
-    canChangeName = false;
-    widget.updateProgressBar();
+    widget._item.name = newName;
+    await Storage.saveItem(widget._item);
+    _canChangeName = false;
+    widget._update();
   }
 
-  void showSnackbar(String message) {
+  void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
   }
 
@@ -76,38 +86,41 @@ class _ItemCard extends State<ItemCard> {
           Transform.scale(
             scale: 1.5,
             child: Checkbox(
-              semanticLabel: 'Checkbox for ${widget.list[widget.index].name}',
-              value: widget.list[widget.index].isChecked,
+              semanticLabel: 'Checkbox for ${widget._item.name}',
+              value: widget._item.isChecked,
               onChanged: (value) {
-                if (widget.list[widget.index].isOneTimeItem) {
-                  Storage.deleteItemFromAllStores(widget.list[widget.index].id);
-                  widget.store.storeItemList.removeWhere((element) => element == widget.list[widget.index].id);
-                  widget.list.removeAt(widget.index);
-                  widget.updateProgressBar();
+                if (widget._item.isOneTimeItem) {
+                  Storage.deleteItemFromAllStores(widget._item.id);
+                  if (widget._isAllItemCard) {
+                    widget._list.remove(widget._item);
+                  } else {
+                    widget._store!.storeItemList.removeWhere((element) => element == widget._item.id);
+                    widget._list.removeAt(widget._list.indexOf(widget._item));
+                  }
+                  widget._update();
                   return;
                 }
-                widget.list[widget.index].isChecked = value!;
-                Storage.saveItem(widget.list[widget.index]);
-                widget.updateProgressBar();
+                widget._item.isChecked = value!;
+                Storage.saveItem(widget._item);
+                widget._update();
               },
             ),
           ),
           Expanded(
-            child: canChangeName
+            child: _canChangeName
                 ? TextField(
-                    controller: textController,
-                    onSubmitted: (newName) async {
-                      handleChangeName(newName, widget.list[widget.index].name);
-                    },
+                    controller: _textController,
+                    onSubmitted: (newName) async => _handleChangeName(newName, widget._item.name),
                     onTapOutside: (oldName) {
-                      canChangeName = false;
+                      _canChangeName = false;
                       setState(() {});
                     },
                     autofocus: true,
-                    decoration: InputDecoration(hintText: widget.list[widget.index].name))
+                    decoration: InputDecoration(hintText: widget._item.name),
+                  )
                 : Text(
-                    widget.list[widget.index].name,
-                    style: !widget.list[widget.index].isChecked
+                    widget._item.name,
+                    style: !widget._item.isChecked
                         ? TextStyle(color: AppColors.of(context).resolvedItemText, fontWeight: FontWeight.bold)
                         : TextStyle(
                             color: AppColors.of(context).resolvedItemCrossed,
@@ -121,22 +134,27 @@ class _ItemCard extends State<ItemCard> {
           PopupMenuButton<String>(
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(value: '1', child: Text(context.read<LanguageService>().text("actions.changeName"))),
-                PopupMenuItem<String>(value: '2', child: Text(context.read<LanguageService>().text("actions.delete"))),
+                PopupMenuItem<String>(value: 'changeName', child: Text(context.read<LanguageService>().text("actions.changeName"))),
+                PopupMenuItem<String>(value: 'deleteItem', child: Text(context.read<LanguageService>().text("actions.delete"))),
               ];
             },
             onSelected: (String value) async {
               switch (value) {
-                case '1':
-                  textController.text = widget.list[widget.index].name;
-                  canChangeName = true;
+                case 'changeName':
+                  _textController.text = widget._item.name;
+                  _canChangeName = true;
                   setState(() {});
                   break;
-                case '2':
-                  Storage.deleteItem(widget.list[widget.index].id, widget.store.id);
-                  widget.store.storeItemList.removeWhere((element) => element == widget.list[widget.index].id);
-                  widget.list.removeAt(widget.index);
-                  widget.updateProgressBar();
+                case 'deleteItem':
+                  if (widget._isAllItemCard) {
+                    Storage.deleteItemFromAllStores(widget._item.id);
+                    widget._list.remove(widget._item);
+                  } else {
+                    Storage.deleteItem(widget._item.id, widget._store!.id);
+                    widget._store!.storeItemList.removeWhere((element) => element == widget._item.id);
+                    widget._list.removeAt(widget._list.indexOf(widget._item));
+                  }
+                  widget._update();
                   break;
               }
             },

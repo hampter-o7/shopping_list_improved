@@ -221,7 +221,7 @@ class _ColorPickerState extends State<ColorPicker> {
             customColors: customColors,
             updateCustomColors: updateCustomColors,
           ),
-          const ScrollCard()
+          const ScrollCard(),
         ],
       ),
     );

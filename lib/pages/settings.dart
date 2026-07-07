@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/classes/store.dart';
 import 'package:shopping_list/main.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/theme_manager.dart';
-
-import '../classes/store.dart';
-import '../storage/local_storage.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});

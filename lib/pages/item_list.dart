@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,16 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/classes/store.dart';
+import 'package:shopping_list/my_widgets/item_card.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/reorderable_card_list.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
 import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-
-import '../classes/item.dart';
-import '../classes/store.dart';
-import '../my_widgets/item_card.dart';
-import '../my_widgets/reorderable_card_list.dart';
-import '../storage/local_storage.dart';
 
 class ItemList extends StatefulWidget {
   const ItemList({super.key});
@@ -334,7 +332,13 @@ class _ItemListState extends State<ItemList> {
                             }
                           },
                         );
-                        return ItemCard(list: itemList, store: store, index: index, updateProgressBar: updateProgressBar);
+                        return ItemCard(
+                          isAllItemCard: false,
+                          item: itemList[index],
+                          list: itemList,
+                          update: updateProgressBar,
+                          store: store,
+                        );
                       }
                       return const ScrollCard();
                     },
@@ -343,7 +347,7 @@ class _ItemListState extends State<ItemList> {
               : Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: ReorderableCardList(list: itemList, store: store, updateProgressBarOrRemoveStore: updateProgressBar),
+                    child: ReorderableCardList(list: itemList, store: store, updateProgressBar: updateProgressBar),
                   ),
                 ),
         ],

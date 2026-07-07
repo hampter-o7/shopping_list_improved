@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/my_widgets/item_card.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
-
-import '../my_widgets/all_item_card.dart';
-import '../storage/local_storage.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class AllItemsList extends StatefulWidget {
   const AllItemsList({super.key});
@@ -24,10 +23,10 @@ class _AllItemsListState extends State<AllItemsList> {
   void didChangeDependencies() async {
     super.didChangeDependencies();
     allItemsList = await Storage.loadAllItems();
-    updateWindow();
+    sortAndUpdateProgressBar();
   }
 
-  void updateWindow() {
+  void sortAndUpdateProgressBar() {
     allItemsList.sort(
       (a, b) {
         if (a.isChecked && !b.isChecked) {
@@ -112,10 +111,11 @@ class _AllItemsListState extends State<AllItemsList> {
               itemCount: allItemsList.length + 1,
               itemBuilder: (context, index) {
                 if (index < allItemsList.length) {
-                  return AllItemCard(
+                  return ItemCard(
+                    isAllItemCard: true,
                     item: allItemsList[index],
-                    removeItem: removeItem,
-                    update: updateWindow,
+                    list: allItemsList,
+                    update: sortAndUpdateProgressBar,
                   );
                 }
                 return const ScrollCard();

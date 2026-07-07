@@ -2,10 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shopping_list/classes/store.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
-
-import '../classes/store.dart';
-import '../storage/local_storage.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class StoreCard extends StatefulWidget {
   final Store store;

@@ -8,9 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shopping_list/classes/colors.dart';
-
-import '../classes/item.dart';
-import '../classes/store.dart';
+import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/classes/store.dart';
 
 class Storage {
   static const String itemKeyPrefix = 'item_';

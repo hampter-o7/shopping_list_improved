@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
+import 'package:showcaseview/showcaseview.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../classes/store.dart';
@@ -30,11 +31,19 @@ class _StoreListState extends State<StoreList> {
   final SpeechToText speech = SpeechToText();
   List<Store> storeList = [];
 
+  final GlobalKey _fabKey = GlobalKey();
+  final GlobalKey _addButtonKey = GlobalKey();
+  final GlobalKey _newStoreKey = GlobalKey();
+  int? _tutorialStoreId;
+
+  final ValueNotifier<bool> _speedDialOpen = ValueNotifier<bool>(false);
+
   @override
   void initState() {
     super.initState();
     initSpeech();
     loadStoresAndAlphaOrder();
+    startTutorial();
   }
 
   Future<void> initSpeech() async {
@@ -46,6 +55,11 @@ class _StoreListState extends State<StoreList> {
     storeList = await Storage.loadAllStores();
     alphaOrder = await Storage.loadAlphaOrder(1);
     setState(() {});
+  }
+
+  void startTutorial() {
+    ShowcaseView.register();
+    WidgetsBinding.instance.addPostFrameCallback((_) => ShowcaseView.get().startShowCase([_fabKey]));
   }
 
   void updateStoreList(List<Store> updatedList) {
@@ -65,7 +79,12 @@ class _StoreListState extends State<StoreList> {
     storeList.add(newStore);
     Storage.saveStore(newStore);
     textController.clear();
+
+    _tutorialStoreId = newId;
     setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 300), () => ShowcaseView.get().startShowCase([_newStoreKey]));
+    });
   }
 
   Future<void> removeStore(int index) async {
@@ -192,35 +211,68 @@ class _StoreListState extends State<StoreList> {
                 itemBuilder: (context, index) {
                   if (index < storeList.length) {
                     storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-                    return StoreCard(
-                      store: storeList[index],
+                    final store = storeList[index];
+                    final card = StoreCard(
+                      store: store,
                       index: index,
                       removeStore: removeStore,
                     );
+
+                    if (_tutorialStoreId != null && store.id == _tutorialStoreId) {
+                      return Showcase(
+                        key: _newStoreKey,
+                        description: 'Tap on your new store to open it.',
+                        disableBarrierInteraction: true,
+                        child: card,
+                      );
+                    }
+                    return card;
                   }
                   return const ScrollCard();
                 },
               )
             : ReorderableCardList(list: storeList, store: Store.empty(), updateProgressBarOrRemoveStore: removeStore),
       ),
-      floatingActionButton: SpeedDial(
-        overlayOpacity: 0,
-        icon: Icons.menu,
-        activeIcon: Icons.close,
-        children: [
-          speedDialChildCustom(
-            context: context,
-            icon: Icons.add,
-            labelKey: "storeList.addButton",
-            onTap: () => showNewStoreDialog(context),
-          ),
-          speedDialChildCustom(
-            context: context,
-            icon: Icons.checklist_rounded,
-            labelKey: "storeList.showAllItems",
-            onTap: () => Navigator.pushNamed(context, '/AllItemsList'),
-          ),
-        ],
+      floatingActionButton: Showcase(
+        key: _fabKey,
+        description: 'Tap here to open the menu.',
+        disableBarrierInteraction: true,
+        disableScaleAnimation: true,
+        disableMovingAnimation: true,
+        onTargetClick: () {
+          _speedDialOpen.value = true; // force the dial open
+          // Wait for the open animation + child widgets to mount, then
+          // showcase the "+" button specifically.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              ShowcaseView.get().startShowCase([_addButtonKey]);
+            });
+          });
+        },
+        disposeOnTap: true,
+        child: SpeedDial(
+          openCloseDial: _speedDialOpen,
+          overlayOpacity: 0,
+          icon: Icons.menu,
+          activeIcon: Icons.close,
+          children: [
+            speedDialChildCustom(
+              context: context,
+              icon: Icons.add,
+              labelKey: "storeList.addButton",
+              onTap: () => showNewStoreDialog(context),
+              showcaseKey: _addButtonKey,
+              showcaseDescription: 'Tap here to create a new store.',
+              speedDialOpen: _speedDialOpen,
+            ),
+            speedDialChildCustom(
+              context: context,
+              icon: Icons.checklist_rounded,
+              labelKey: "storeList.showAllItems",
+              onTap: () => Navigator.pushNamed(context, '/AllItemsList'),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -11,7 +11,7 @@ import 'package:shopping_list/storage/local_storage.dart';
 class ReorderableCardList<T> extends StatefulWidget {
   final List<T> list;
   final Store? store;
-  final Function? updateProgressBar;
+  final Function()? updateProgressBar;
   final Function? removeStore;
 
   const ReorderableCardList({

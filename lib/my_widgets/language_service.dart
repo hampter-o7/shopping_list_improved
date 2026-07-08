@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LanguageService extends ChangeNotifier {
-  static final LanguageService instance = LanguageService._internal();
+  static final LanguageService _instance = LanguageService._internal();
   LanguageService._internal();
 
-  factory LanguageService() => instance;
+  factory LanguageService() => _instance;
 
   Map<String, dynamic> _strings = {};
 
   Future<void> load(String languageCode) async {
     final jsonString = await rootBundle.loadString('assets/language/$languageCode.jsonc');
 
-    final cleaned = cleanJsonC(jsonString);
+    final cleaned = _cleanJsonC(jsonString);
     _strings = json.decode(cleaned);
 
     notifyListeners();
@@ -40,7 +40,7 @@ class LanguageService extends ChangeNotifier {
     return result;
   }
 
-  String cleanJsonC(String input) {
+  String _cleanJsonC(String input) {
     return input.split('\n').where((line) => !line.trim().startsWith('//')).join('\n');
   }
 }

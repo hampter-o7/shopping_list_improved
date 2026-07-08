@@ -23,8 +23,14 @@ class StoreCard extends StatefulWidget {
 }
 
 class _StoreCard extends State<StoreCard> {
-  bool canChangeName = false;
-  final textController = TextEditingController();
+  bool _canChangeName = false;
+  final _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +41,17 @@ class _StoreCard extends State<StoreCard> {
           Expanded(
             child: ListTile(
               onTap: () => Navigator.pushNamed(context, '/ItemList', arguments: {'store': widget.store}),
-              title: canChangeName
+              title: _canChangeName
                   ? TextField(
-                      controller: textController,
+                      controller: _textController,
                       onSubmitted: (newName) {
                         widget.store.name = newName;
                         Storage.saveStore(widget.store);
-                        canChangeName = false;
+                        _canChangeName = false;
                         setState(() {});
                       },
                       onTapOutside: (oldName) {
-                        canChangeName = false;
+                        _canChangeName = false;
                         setState(() {});
                       },
                       autofocus: true,
@@ -57,29 +63,29 @@ class _StoreCard extends State<StoreCard> {
                       margin: const EdgeInsets.all(3),
                       child: File(widget.store.imageLocation).existsSync()
                           ? Image.file(File(widget.store.imageLocation), fit: BoxFit.contain)
-                          : Icon(Icons.shopping_cart_rounded),
+                          : const Icon(Icons.shopping_cart_rounded),
                     )
-                  : Icon(Icons.shopping_cart_rounded),
+                  : const Icon(Icons.shopping_cart_rounded),
             ),
           ),
           PopupMenuButton<String>(
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(value: '1', child: Text(context.read<LanguageService>().text("actions.changeName"))),
-                PopupMenuItem<String>(value: '2', child: Text(context.read<LanguageService>().text("actions.changeImage"))),
-                PopupMenuItem<String>(value: '3', child: Text(context.read<LanguageService>().text("actions.delete"))),
+                PopupMenuItem<String>(value: 'changeName', child: Text(context.read<LanguageService>().text("actions.changeName"))),
+                PopupMenuItem<String>(value: 'changeImage', child: Text(context.read<LanguageService>().text("actions.changeImage"))),
+                PopupMenuItem<String>(value: 'deleteStore', child: Text(context.read<LanguageService>().text("actions.delete"))),
               ];
             },
             onSelected: (String value) async {
               switch (value) {
-                case '1':
-                  textController.text = widget.store.name;
-                  canChangeName = true;
+                case 'changeName':
+                  _textController.text = widget.store.name;
+                  _canChangeName = true;
                   break;
-                case '2':
+                case 'changeImage':
                   await Storage.saveStoreImage(widget.store);
                   break;
-                case '3':
+                case 'deleteStore':
                   widget.removeStore(widget.index);
                   break;
               }

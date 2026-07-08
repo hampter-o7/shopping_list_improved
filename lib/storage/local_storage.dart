@@ -16,7 +16,7 @@ class Storage {
   static const String storeKeyPrefix = 'store_';
   static const String alphaOrderKey = 'alphaOrder';
   static const String themeModeKey = 'themeMode';
-  static const String costumeThemeKey = 'costumeTheme';
+  static const String costumeThemeKeyLegacy = 'costumeTheme';
   static const String customThemeKey = 'customTheme';
   static const String languageKey = 'language';
 
@@ -34,7 +34,7 @@ class Storage {
     return language;
   }
 
-  static Future<void> deleteLanguage() async {
+  static Future<void> _deleteLanguage() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(languageKey);
   }
@@ -53,7 +53,7 @@ class Storage {
     return alphaOrderString.toLowerCase() == 'true';
   }
 
-  static Future<void> deleteAlphaOrder() async {
+  static Future<void> _deleteAlphaOrder() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove("${alphaOrderKey}1");
     await prefs.remove("${alphaOrderKey}2");
@@ -73,7 +73,7 @@ class Storage {
     return themeMode;
   }
 
-  static Future<void> deleteThemeMode() async {
+  static Future<void> _deleteThemeMode() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(themeModeKey);
   }
@@ -90,20 +90,20 @@ class Storage {
       return ColorPalette.fromJson(jsonDecode(customColorPalette) as Map<String, dynamic>);
     }
     // legacy load
-    String? costumeColorPalette = prefs.getString(costumeThemeKey);
+    String? costumeColorPalette = prefs.getString(costumeThemeKeyLegacy);
     if (costumeColorPalette != null) {
       return ColorPalette.fromJson(jsonDecode(costumeColorPalette) as Map<String, dynamic>);
     }
     return null;
   }
 
-  static Future<void> deleteCustomTheme() async {
+  static Future<void> _deleteCustomTheme() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(customThemeKey);
-    await prefs.remove(costumeThemeKey); // legacy delete
+    await prefs.remove(costumeThemeKeyLegacy); // legacy delete
   }
 
-  static Future<void> saveAllStores(List<Store> stores) async {
+  static Future<void> _saveAllStores(List<Store> stores) async {
     for (Store store in stores) {
       saveStore(store);
     }
@@ -135,7 +135,7 @@ class Storage {
     }
     late int newId;
     do {
-      newId = generateRandomIdNumber(8);
+      newId = _generateRandomIdNumber(8);
     } while (newId == lastId);
 
     final String imagePath = '${directory.path}/${store.id}${newId}Image.png';
@@ -148,7 +148,7 @@ class Storage {
     }
   }
 
-  static Future<void> deleteAllImages() async {
+  static Future<void> _deleteAllImages() async {
     final Directory directory = await getApplicationDocumentsDirectory();
     final imagesDirectory = Directory(directory.path);
 
@@ -192,7 +192,7 @@ class Storage {
     return null;
   }
 
-  static Future<void> saveAllItems(List<Item> items) async {
+  static Future<void> _saveAllItems(List<Item> items) async {
     for (Item item in items) {
       saveItem(item);
     }
@@ -217,7 +217,7 @@ class Storage {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((key) => key.startsWith(itemKeyPrefix));
     for (String key in keys) {
-      Item? loadedStore = await loadItem(key);
+      Item? loadedStore = await _loadItem(key);
       if (loadedStore != null) items.add(loadedStore);
     }
     return items;
@@ -227,7 +227,7 @@ class Storage {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((key) => key.startsWith(itemKeyPrefix));
     for (String key in keys) {
-      Item? loadedItem = await loadItem(key);
+      Item? loadedItem = await _loadItem(key);
       if (loadedItem != null && loadedItem.name == name) return loadedItem;
     }
     return null;
@@ -236,13 +236,13 @@ class Storage {
   static Future<List<Item>> loadAllStoreItems(List<int> listOfIds) async {
     List<Item> items = [];
     for (int id in listOfIds) {
-      Item? loadedItem = await loadItem('$itemKeyPrefix$id');
+      Item? loadedItem = await _loadItem('$itemKeyPrefix$id');
       if (loadedItem != null) items.add(loadedItem);
     }
     return items;
   }
 
-  static Future<Item?> loadItem(String key) async {
+  static Future<Item?> _loadItem(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final valueJson = prefs.getString(key);
     if (valueJson != null) {
@@ -266,12 +266,12 @@ class Storage {
         );
     late int newId;
     do {
-      newId = generateRandomIdNumber(8);
+      newId = _generateRandomIdNumber(8);
     } while (keys.contains('${isStore ? storeKeyPrefix : itemKeyPrefix}$newId'));
     return newId;
   }
 
-  static int generateRandomIdNumber(int n) {
+  static int _generateRandomIdNumber(int n) {
     final int min = pow(10, n - 1) as int;
     final int max = pow(10, n) - 1 as int;
 
@@ -298,7 +298,7 @@ class Storage {
     debugPrint('ITEMS:');
     for (final key in keys) {
       if (key.startsWith(itemKeyPrefix)) {
-        Item? item = await loadItem(key);
+        Item? item = await _loadItem(key);
         if (item != null) {
           debugPrint('name: ${item.name}, id: ${item.id}, storeList: ${item.storeList.toString()}, isOneTimeItem: ${item.isOneTimeItem}');
         }
@@ -349,7 +349,7 @@ class Storage {
       for (String key in keys) {
         try {
           if (key.contains(itemKeyPrefix)) {
-            Item? item = await loadItem(key);
+            Item? item = await _loadItem(key);
             if (item != null) {
               final value = {
                 'name': item.name,
@@ -397,7 +397,7 @@ class Storage {
         final directory = Directory(directoryPath);
 
         if (await directory.exists()) {
-          final file = File('${directory.path}/combined_data${generateRandomIdNumber(8)}.json');
+          final file = File('${directory.path}/combined_data${_generateRandomIdNumber(8)}.json');
           final encodedData = jsonEncode(allData);
           await file.writeAsString(encodedData);
         }
@@ -458,7 +458,7 @@ class Storage {
             debugPrint('ERROR importing a store: $e');
           }
         }
-        saveAllStores(stores);
+        _saveAllStores(stores);
       }
     } catch (e) {
       debugPrint('ERROR importing stores: $e');
@@ -481,7 +481,7 @@ class Storage {
             debugPrint('ERROR importing an item: $e');
           }
         }
-        saveAllItems(items);
+        _saveAllItems(items);
       }
     } catch (e) {
       debugPrint('ERROR importing items: $e');
@@ -543,7 +543,7 @@ class Storage {
   }
 
   static Future<void> deleteItem(int id, int storeId) async {
-    Item? item = await loadItem('$itemKeyPrefix$id');
+    Item? item = await _loadItem('$itemKeyPrefix$id');
     Store? store = await loadStore('$storeKeyPrefix$storeId');
     if (item != null) {
       item.storeList.remove(storeId);
@@ -560,7 +560,7 @@ class Storage {
   }
 
   static Future<void> deleteItemFromAllStores(int id) async {
-    Item? item = await loadItem('$itemKeyPrefix$id');
+    Item? item = await _loadItem('$itemKeyPrefix$id');
     if (item != null) {
       for (int storeId in item.storeList) {
         await deleteItem(id, storeId);
@@ -580,9 +580,10 @@ class Storage {
       }
       await prefs.remove(key);
     }
-    deleteLanguage();
-    deleteAlphaOrder();
-    deleteThemeMode();
-    deleteCustomTheme();
+    _deleteLanguage();
+    _deleteAlphaOrder();
+    _deleteThemeMode();
+    _deleteCustomTheme();
+    _deleteAllImages();
   }
 }

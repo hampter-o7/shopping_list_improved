@@ -17,29 +17,29 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  List<String> languageFiles = [];
-  late Function updateStoreList;
+  List<String> _languageFiles = [];
+  late Function _updateStoreList;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     Map args = ModalRoute.of(context)!.settings.arguments as Map;
-    updateStoreList = args['updateStoreList'];
-    loadLanguageFiles();
+    _updateStoreList = args['updateStoreList'];
+    _loadLanguageFiles();
   }
 
-  Future<void> loadLanguageFiles() async {
+  Future<void> _loadLanguageFiles() async {
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
     final files = manifest.listAssets().where((key) => key.startsWith('assets/language/') && key.endsWith('.jsonc')).toList();
-    languageFiles = files;
+    _languageFiles = files;
   }
 
-  String formatLanguageName(String path) {
+  String _formatLanguageName(String path) {
     final fileName = path.split('/').last.replaceAll('.jsonc', '');
     return fileName[0].toUpperCase() + fileName.substring(1);
   }
 
-  Future<void> showConfirmationDialog(String message, bool isDelete) async {
+  Future<void> _showConfirmationDialog(String message, bool isDelete) async {
     await showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -64,7 +64,7 @@ class _SettingsState extends State<Settings> {
                 themeManager.setTheme(AppTheme.values[await Storage.loadThemeMode()]);
                 themeManager.setCustomPalette(await Storage.loadCustomTheme());
                 List<Store> storeList = await Storage.loadAllStores();
-                updateStoreList(storeList);
+                _updateStoreList(storeList);
               },
               child: Text(context.read<LanguageService>().text("actions.yes")),
             ),
@@ -87,7 +87,7 @@ class _SettingsState extends State<Settings> {
         title: Text(context.read<LanguageService>().text("settings.title").toUpperCase()),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -101,7 +101,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.delete),
                 title: Text(context.read<LanguageService>().text("settings.deleteEverything")),
                 onPressed: (value) {
-                  showConfirmationDialog(context.read<LanguageService>().text("settings.deleteEverythingConfirm"), true);
+                  _showConfirmationDialog(context.read<LanguageService>().text("settings.deleteEverythingConfirm"), true);
                 },
               ),
               SettingsTile.navigation(
@@ -115,7 +115,7 @@ class _SettingsState extends State<Settings> {
                 leading: const Icon(Icons.file_download_outlined),
                 title: Text(context.read<LanguageService>().text("settings.import")),
                 onPressed: (value) {
-                  showConfirmationDialog(context.read<LanguageService>().text("settings.importConfirm"), false);
+                  _showConfirmationDialog(context.read<LanguageService>().text("settings.importConfirm"), false);
                 },
               ),
               SettingsTile.navigation(
@@ -131,8 +131,8 @@ class _SettingsState extends State<Settings> {
                     context: context,
                     builder: (_) {
                       return SimpleDialog(
-                        children: languageFiles.map((path) {
-                          final name = formatLanguageName(path);
+                        children: _languageFiles.map((path) {
+                          final name = _formatLanguageName(path);
                           final value = path.split('/').last.replaceAll('.jsonc', '');
                           return SimpleDialogOption(
                             child: Text(name),

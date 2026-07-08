@@ -20,58 +20,64 @@ class StoreList extends StatefulWidget {
 }
 
 class _StoreListState extends State<StoreList> {
-  bool alphaOrder = false;
-  bool speechEnabled = false;
-  bool isListening = false;
-  final textController = TextEditingController();
-  final SpeechToText speech = SpeechToText();
-  List<Store> storeList = [];
+  bool _alphaOrder = false;
+  bool _speechEnabled = false;
+  bool _isListening = false;
+  final _textController = TextEditingController();
+  final SpeechToText _speech = SpeechToText();
+  List<Store> _storeList = [];
 
   @override
   void initState() {
     super.initState();
-    initSpeech();
-    loadStoresAndAlphaOrder();
+    _initSpeech();
+    _loadStoresAndAlphaOrder();
   }
 
-  Future<void> initSpeech() async {
-    speechEnabled = await speech.initialize();
+  Future<void> _initSpeech() async {
+    _speechEnabled = await _speech.initialize();
     setState(() {});
   }
 
-  Future<void> loadStoresAndAlphaOrder() async {
-    storeList = await Storage.loadAllStores();
-    alphaOrder = await Storage.loadAlphaOrder(1);
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadStoresAndAlphaOrder() async {
+    _storeList = await Storage.loadAllStores();
+    _alphaOrder = await Storage.loadAlphaOrder(1);
     setState(() {});
   }
 
-  void updateStoreList(List<Store> updatedList) {
-    storeList = updatedList;
+  void _updateStoreList(List<Store> updatedList) {
+    _storeList = updatedList;
     setState(() {});
   }
 
-  Future<void> addShopToList(String storeName) async {
+  Future<void> _addShopToList(String storeName) async {
     int newId = await Storage.generateIdNumber(true);
     Store newStore = Store(
       name: storeName,
       id: newId,
-      order: storeList.length,
+      order: _storeList.length,
       imageLocation: '',
       storeItemList: [],
     );
-    storeList.add(newStore);
+    _storeList.add(newStore);
     Storage.saveStore(newStore);
-    textController.clear();
+    _textController.clear();
     setState(() {});
   }
 
-  Future<void> removeStore(int index) async {
-    await Storage.deleteStore(storeList.elementAt(index).id);
-    storeList.removeAt(index);
+  Future<void> _removeStore(int index) async {
+    await Storage.deleteStore(_storeList.elementAt(index).id);
+    _storeList.removeAt(index);
     setState(() {});
   }
 
-  Future<dynamic> showNewStoreDialog(BuildContext context) {
+  Future<dynamic> _showNewStoreDialog(BuildContext context) {
     return showDialog(
       context: context,
       builder: (context) {
@@ -83,38 +89,38 @@ class _StoreListState extends State<StoreList> {
                 children: [
                   TextField(
                     onSubmitted: (value) {
-                      addShopToList(textController.text);
+                      _addShopToList(_textController.text);
                       Navigator.pop(context);
                     },
                     autofocus: true,
-                    controller: textController,
+                    controller: _textController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: context.read<LanguageService>().text("storeList.addNewHint"),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          isListening ? Icons.mic : Icons.mic_off,
+                          _isListening ? Icons.mic : Icons.mic_off,
                           color: AppColors.of(context).resolvedItemText,
                         ),
                         onPressed: () async {
-                          if (isListening) {
-                            await speech.stop();
-                            isListening = false;
+                          if (_isListening) {
+                            await _speech.stop();
+                            _isListening = false;
                           } else {
-                            if (!speechEnabled) return;
-                            await speech.listen(
+                            if (!_speechEnabled) return;
+                            await _speech.listen(
                               onResult: (result) {
-                                textController.text = result.recognizedWords;
-                                textController.selection = TextSelection.fromPosition(
-                                  TextPosition(offset: textController.text.length),
+                                _textController.text = result.recognizedWords;
+                                _textController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: _textController.text.length),
                                 );
-                                isListening = false;
+                                _isListening = false;
                                 setModalState(() {});
                               },
                             );
-                            isListening = true;
+                            _isListening = true;
                           }
-                          debugPrint("$isListening");
+                          debugPrint("$_isListening");
                           setModalState(() {});
                         },
                       ),
@@ -126,14 +132,14 @@ class _StoreListState extends State<StoreList> {
               actions: [
                 FilledButton(
                   onPressed: () {
-                    textController.text = "";
+                    _textController.text = "";
                     Navigator.pop(context);
                   },
                   child: Text(context.read<LanguageService>().text("actions.cancel")),
                 ),
                 FilledButton(
                   onPressed: () {
-                    addShopToList(textController.text);
+                    _addShopToList(_textController.text);
                     Navigator.pop(context);
                   },
                   child: Text(context.read<LanguageService>().text("actions.add")),
@@ -148,11 +154,14 @@ class _StoreListState extends State<StoreList> {
 
   @override
   Widget build(BuildContext context) {
+    if (_alphaOrder) {
+      _storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pushNamed(context, '/Settings', arguments: {'updateStoreList': updateStoreList}),
-          icon: Icon(Icons.settings, semanticLabel: 'Settings'),
+          onPressed: () => Navigator.pushNamed(context, '/Settings', arguments: {'updateStoreList': _updateStoreList}),
+          icon: const Icon(Icons.settings, semanticLabel: 'Settings'),
         ),
         title: Text(context.watch<LanguageService>().text("storeList.title").toUpperCase()),
         centerTitle: true,
@@ -161,8 +170,8 @@ class _StoreListState extends State<StoreList> {
           Semantics(
             container: true,
             label: 'Alphabetical switch',
-            checked: alphaOrder,
-            value: 'Feature is ${alphaOrder ? 'enabled' : 'disabled'}',
+            checked: _alphaOrder,
+            value: 'Feature is ${_alphaOrder ? 'enabled' : 'disabled'}',
             increasedValue: 'Tap to disable feature',
             decreasedValue: 'Tap to enable feature',
             child: Switch(
@@ -173,32 +182,31 @@ class _StoreListState extends State<StoreList> {
               trackOutlineColor: WidgetStateProperty.all(AppColors.of(context).resolvedTitleText),
               onChanged: (bool value) async {
                 await Storage.saveAlphaOrder(value, 1);
-                alphaOrder = value;
+                _alphaOrder = value;
                 setState(() {});
               },
-              value: alphaOrder,
+              value: _alphaOrder,
             ),
           ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10),
-        child: alphaOrder
+        child: _alphaOrder
             ? ListView.builder(
-                itemCount: storeList.length + 1,
+                itemCount: _storeList.length + 1,
                 itemBuilder: (context, index) {
-                  if (index < storeList.length) {
-                    storeList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                  if (index < _storeList.length) {
                     return StoreCard(
-                      store: storeList[index],
+                      store: _storeList[index],
                       index: index,
-                      removeStore: removeStore,
+                      removeStore: _removeStore,
                     );
                   }
                   return const ScrollCard();
                 },
               )
-            : ReorderableCardList(list: storeList, removeStore: removeStore),
+            : ReorderableCardList(list: _storeList, removeStore: _removeStore),
       ),
       floatingActionButton: SpeedDial(
         overlayOpacity: 0,
@@ -209,7 +217,7 @@ class _StoreListState extends State<StoreList> {
             context: context,
             icon: Icons.add,
             labelKey: "storeList.addButton",
-            onTap: () => showNewStoreDialog(context),
+            onTap: () => _showNewStoreDialog(context),
           ),
           speedDialChildCustom(
             context: context,

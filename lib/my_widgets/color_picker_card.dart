@@ -7,15 +7,15 @@ import 'package:shopping_list/my_widgets/theme_manager.dart';
 
 class ColorPickerCard extends StatefulWidget {
   final String name;
-  final bool isNotMandatory;
   final AppColorKey colorKey;
+  final bool isNotMandatory;
   final Map<AppColorKey, Color> customColors;
-  final Function updateCustomColors;
+  final Function(AppColorKey appColorKey, Color newColor, bool isRemove) updateCustomColors;
 
   const ColorPickerCard({
     super.key,
-    required this.name,
     required this.isNotMandatory,
+    required this.name,
     required this.colorKey,
     required this.customColors,
     required this.updateCustomColors,
@@ -26,12 +26,12 @@ class ColorPickerCard extends StatefulWidget {
 }
 
 class _ColorPickerCard extends State<ColorPickerCard> {
-  late Color colorPicked = widget.customColors[widget.colorKey] ?? AppColors.of(context).getByKey(widget.colorKey);
+  late Color _colorPicked = widget.customColors[widget.colorKey] ?? AppColors.of(context).getByKey(widget.colorKey);
 
   @override
   void didUpdateWidget(covariant ColorPickerCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    colorPicked = widget.customColors[widget.colorKey] ?? AppColors.of(context).getByKey(widget.colorKey);
+    _colorPicked = widget.customColors[widget.colorKey] ?? AppColors.of(context).getByKey(widget.colorKey);
   }
 
   @override
@@ -50,7 +50,7 @@ class _ColorPickerCard extends State<ColorPickerCard> {
                     ? (MediaQuery.platformBrightnessOf(context) == Brightness.dark ? AppColors.dark : AppColors.light)
                     : themeManager.defaultPalette;
                 Color defaultColor = basePalette.getByKey(widget.colorKey);
-                colorPicked = defaultColor;
+                _colorPicked = defaultColor;
                 widget.updateCustomColors(widget.colorKey, defaultColor, true);
                 setState(() {});
               },
@@ -61,12 +61,12 @@ class _ColorPickerCard extends State<ColorPickerCard> {
               width: 40,
               height: 40,
               borderRadius: 0,
-              color: colorPicked,
+              color: _colorPicked,
               elevation: 1,
               onSelect: () async {
                 final Color newColor = await showColorPickerDialog(
                   context,
-                  colorPicked,
+                  _colorPicked,
                   title: Text(
                     context.read<LanguageService>().text("colorPickerCard.title"),
                     style: TextStyle(color: AppColors.of(context).itemText, fontSize: 28),
@@ -106,7 +106,7 @@ class _ColorPickerCard extends State<ColorPickerCard> {
                     dialogActionButtons: false,
                   ),
                 );
-                colorPicked = newColor;
+                _colorPicked = newColor;
                 widget.updateCustomColors(widget.colorKey, newColor, false);
                 setState(() {});
               },

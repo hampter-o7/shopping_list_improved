@@ -40,6 +40,7 @@ class _StoreCard extends State<StoreCard> {
         children: [
           Expanded(
             child: ListTile(
+              contentPadding: const EdgeInsets.only(left: 10, right: 16),
               onTap: () => Navigator.pushNamed(context, '/ItemList', arguments: {'store': widget.store}),
               title: _canChangeName
                   ? TextField(
@@ -58,14 +59,18 @@ class _StoreCard extends State<StoreCard> {
                       decoration: InputDecoration(hintText: widget.store.name),
                     )
                   : Text(widget.store.name),
-              leading: widget.store.imageLocation.isNotEmpty
-                  ? Container(
-                      margin: const EdgeInsets.all(3),
-                      child: File(widget.store.imageLocation).existsSync()
-                          ? Image.file(File(widget.store.imageLocation), fit: BoxFit.contain)
-                          : const Icon(Icons.shopping_cart_rounded),
-                    )
-                  : const Icon(Icons.shopping_cart_rounded),
+              leading: SizedBox(
+                width: 40,
+                height: 40,
+                child: widget.store.imageLocation.isNotEmpty
+                    ? File(widget.store.imageLocation).existsSync()
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(File(widget.store.imageLocation), fit: BoxFit.contain),
+                          )
+                        : const Icon(Icons.shopping_cart_rounded)
+                    : const Icon(Icons.shopping_cart_rounded),
+              ),
             ),
           ),
           PopupMenuButton<String>(

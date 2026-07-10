@@ -1,24 +1,25 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/classes/store.dart';
 import 'package:shopping_list/my_widgets/item_card.dart';
+import 'package:shopping_list/my_widgets/scroll_card.dart';
 import 'package:shopping_list/my_widgets/store_card.dart';
-
-import '../classes/item.dart';
-import '../classes/store.dart';
-import '../storage/local_storage.dart';
-import 'scroll_card.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class ReorderableCardList<T> extends StatefulWidget {
   final List<T> list;
-  final Store store;
-  final Function updateProgressBarOrRemoveStore;
+  final Store? store;
+  final Function()? updateProgressBar;
+  final Function? removeStore;
 
   const ReorderableCardList({
     super.key,
     required this.list,
-    required this.store,
-    required this.updateProgressBarOrRemoveStore,
+    this.store,
+    this.updateProgressBar,
+    this.removeStore,
   });
 
   @override
@@ -28,12 +29,12 @@ class ReorderableCardList<T> extends StatefulWidget {
 class _ReorderableCardListState<T> extends State<ReorderableCardList> {
   @override
   Widget build(BuildContext context) {
-    if (widget.list.isEmpty || widget.list[0] is Store) {
+    if (widget.list.isEmpty || widget.store == null) {
       widget.list.sort((a, b) => a.order.compareTo(b.order));
     } else {
       widget.list.sort((a, b) {
-        final indexA = widget.store.storeItemList.indexOf(a.id);
-        final indexB = widget.store.storeItemList.indexOf(b.id);
+        final indexA = widget.store!.storeItemList.indexOf(a.id);
+        final indexB = widget.store!.storeItemList.indexOf(b.id);
         return indexA.compareTo(indexB);
       });
     }
@@ -45,14 +46,15 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
                 key: ValueKey('store-${(widget.list[index] as Store).id}'),
                 store: widget.list[index],
                 index: index,
-                removeStore: widget.updateProgressBarOrRemoveStore,
+                removeStore: widget.removeStore!,
               )
             : ItemCard(
                 key: ValueKey('item-${(widget.list[index] as Item).id}'),
+                isAllItemCard: false,
+                item: widget.list[index],
                 list: widget.list as List<Item>,
+                update: widget.updateProgressBar!,
                 store: widget.store,
-                index: index,
-                updateProgressBar: widget.updateProgressBarOrRemoveStore,
               )
     ];
 
@@ -90,9 +92,9 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
             idList.add(widget.list[i].id);
           }
         }
-        if (widget.list.isNotEmpty && widget.list[0] is Item) {
-          widget.store.storeItemList = idList;
-          Storage.saveStore(widget.store);
+        if (widget.list.isNotEmpty && widget.store != null) {
+          widget.store!.storeItemList = idList;
+          Storage.saveStore(widget.store!);
         }
 
         setState(() {});

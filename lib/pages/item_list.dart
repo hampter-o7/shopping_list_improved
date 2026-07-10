@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,16 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:provider/provider.dart';
 import 'package:shopping_list/classes/colors.dart';
+import 'package:shopping_list/classes/item.dart';
+import 'package:shopping_list/classes/store.dart';
+import 'package:shopping_list/my_widgets/item_card.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
+import 'package:shopping_list/my_widgets/reorderable_card_list.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
+import 'package:shopping_list/my_widgets/speech_service.dart';
 import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
-import 'package:speech_to_text/speech_to_text.dart';
-
-import '../classes/item.dart';
-import '../classes/store.dart';
-import '../my_widgets/item_card.dart';
-import '../my_widgets/reorderable_card_list.dart';
-import '../storage/local_storage.dart';
+import 'package:shopping_list/storage/local_storage.dart';
 
 class ItemList extends StatefulWidget {
   const ItemList({super.key});
@@ -25,65 +23,56 @@ class ItemList extends StatefulWidget {
 }
 
 class _ItemListState extends State<ItemList> {
-  bool alphaOrder = false;
-  // TODO implement other language recognition
-  bool speechEnabled = false;
-  bool isListening = false;
-  double progress = 0;
-  String storeName = 'Store';
-  final textController = TextEditingController();
-  final SpeechToText speech = SpeechToText();
-  late Store store;
-  List<Item> itemList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    initSpeech();
-  }
-
-  Future<void> initSpeech() async {
-    speechEnabled = await speech.initialize();
-    setState(() {});
-  }
+  bool _alphaOrder = false;
+  double _progress = 0;
+  String _storeName = 'Store';
+  final _textController = TextEditingController();
+  late Store _store;
+  List<Item> _itemList = [];
 
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
     Map args = ModalRoute.of(context)!.settings.arguments as Map;
-    store = args['store'];
-    storeName = store.name;
-    List<int> idItemList = store.storeItemList;
-    itemList = await Storage.loadAllStoreItems(idItemList);
-    alphaOrder = await Storage.loadAlphaOrder(2);
-    updateProgressBar();
+    _store = args['store'];
+    _storeName = _store.name;
+    List<int> idItemList = _store.storeItemList;
+    _itemList = await Storage.loadAllStoreItems(idItemList);
+    _alphaOrder = await Storage.loadAlphaOrder(2);
+    _updateProgressBar();
   }
 
-  void updateProgressBar() {
-    if (itemList.isEmpty) {
-      progress = 0;
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _updateProgressBar() {
+    if (_itemList.isEmpty) {
+      _progress = 0;
     } else {
       int numberOfIsChecked = 0;
-      for (Item item in itemList) {
+      for (Item item in _itemList) {
         if (item.isChecked) numberOfIsChecked++;
       }
-      progress = numberOfIsChecked / itemList.length;
+      _progress = numberOfIsChecked / _itemList.length;
     }
     setState(() {});
   }
 
-  Future<void> addItemToList(String itemName, bool isOneTimeItem) async {
-    String alreadyExists = context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": store.name});
+  Future<void> _addItemToList(String itemName, bool isOneTimeItem) async {
+    String alreadyExists = context.read<LanguageService>().text("itemList.alreadyExists", {"storeName": _store.name});
     Item? item = await Storage.checkIfItemExists(itemName);
     if (item != null) {
-      if (store.storeItemList.contains(item.id)) {
-        showSnackbar(alreadyExists);
-        textController.clear();
+      if (_store.storeItemList.contains(item.id)) {
+        _showSnackbar(alreadyExists);
+        _textController.clear();
         return;
       }
-      item.storeList.add(store.id);
-      itemList.add(item);
-      store.storeItemList.add(item.id);
+      item.storeList.add(_store.id);
+      _itemList.add(item);
+      _store.storeItemList.add(item.id);
       Storage.saveItem(item);
     } else {
       int newId = await Storage.generateIdNumber(false);
@@ -94,21 +83,21 @@ class _ItemListState extends State<ItemList> {
         storeList: [],
         isOneTimeItem: isOneTimeItem,
       );
-      newItem.storeList.add(store.id);
-      itemList.add(newItem);
+      newItem.storeList.add(_store.id);
+      _itemList.add(newItem);
       Storage.saveItem(newItem);
-      store.storeItemList.add(newItem.id);
+      _store.storeItemList.add(newItem.id);
     }
-    Storage.saveStore(store);
-    textController.clear();
-    updateProgressBar();
+    Storage.saveStore(_store);
+    _textController.clear();
+    _updateProgressBar();
   }
 
-  void showSnackbar(String message) {
+  void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 5)));
   }
 
-  Future<void> removeAllCheckmarksDialog() async {
+  Future<void> _removeAllCheckmarksDialog() async {
     await showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -123,11 +112,11 @@ class _ItemListState extends State<ItemList> {
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                for (Item item in itemList) {
+                for (Item item in _itemList) {
                   item.isChecked = false;
                   Storage.saveItem(item);
                 }
-                updateProgressBar();
+                _updateProgressBar();
               },
               child: Text(context.read<LanguageService>().text("actions.yes")),
             ),
@@ -137,8 +126,10 @@ class _ItemListState extends State<ItemList> {
     );
   }
 
-  Future<dynamic> showNewItemDialog(BuildContext context) {
+  Future<dynamic> _showNewItemDialog(BuildContext context) {
     bool isOneTimeItem = false;
+    final speech = SpeechService();
+    bool isListening = false;
     return showDialog(
       context: context,
       builder: (context) {
@@ -150,38 +141,38 @@ class _ItemListState extends State<ItemList> {
                 children: [
                   TextField(
                     onSubmitted: (value) {
-                      addItemToList(textController.text, isOneTimeItem);
+                      _addItemToList(_textController.text, isOneTimeItem);
                       Navigator.pop(context);
                     },
                     autofocus: true,
-                    controller: textController,
+                    controller: _textController,
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: context.read<LanguageService>().text("itemList.addNewHint"),
                       suffixIcon: IconButton(
-                        icon: Icon(isListening ? Icons.mic : Icons.mic_off, color: AppColors.of(context).resolvedItemText),
-                        onPressed: () async {
-                          if (isListening) {
-                            await speech.stop();
-                            isListening = false;
-                          } else {
-                            if (!speechEnabled) return;
-                            await speech.listen(
-                              onResult: (result) {
-                                textController.text = result.recognizedWords;
-                                textController.selection = TextSelection.fromPosition(
-                                  TextPosition(offset: textController.text.length),
-                                );
-                                isListening = false;
-                                setModalState(() {});
-                              },
-                            );
-                            isListening = true;
-                          }
-                          debugPrint("$isListening");
-                          setModalState(() {});
-                        },
-                      ),
+                          icon: Icon(isListening ? Icons.mic : Icons.mic_none),
+                          onPressed: () async {
+                            if (!speech.isListening) {
+                              isListening = true;
+                              setModalState(() {});
+                              await speech.startListening(
+                                (text) {
+                                  _textController.text = text;
+                                  _textController.selection = TextSelection.fromPosition(TextPosition(offset: _textController.text.length));
+                                  isListening = false;
+                                  setModalState(() {});
+                                },
+                                onError: (errorMsg) {
+                                  isListening = false;
+                                  setModalState(() {});
+                                },
+                              );
+                            } else {
+                              speech.stopListening();
+                              isListening = false;
+                            }
+                            setModalState(() {});
+                          }),
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -204,14 +195,14 @@ class _ItemListState extends State<ItemList> {
               actions: [
                 FilledButton(
                   onPressed: () {
-                    textController.text = "";
+                    _textController.text = "";
                     Navigator.pop(context);
                   },
                   child: Text(context.read<LanguageService>().text("actions.cancel")),
                 ),
                 FilledButton(
                   onPressed: () {
-                    addItemToList(textController.text, isOneTimeItem);
+                    _addItemToList(_textController.text, isOneTimeItem);
                     Navigator.pop(context);
                   },
                   child: Text(context.read<LanguageService>().text("actions.add")),
@@ -226,6 +217,19 @@ class _ItemListState extends State<ItemList> {
 
   @override
   Widget build(BuildContext context) {
+    if (_alphaOrder) {
+      _itemList.sort(
+        (a, b) {
+          if (a.isChecked && !b.isChecked) {
+            return 1;
+          } else if (!a.isChecked && b.isChecked) {
+            return -1;
+          } else {
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          }
+        },
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Stack(
@@ -234,30 +238,30 @@ class _ItemListState extends State<ItemList> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                store.imageLocation.isNotEmpty
+                _store.imageLocation.isNotEmpty
                     ? SizedBox(
                         width: 50,
                         height: 50,
                         child: Container(
                           margin: const EdgeInsets.all(3),
-                          child: Image.file(File(store.imageLocation), fit: BoxFit.contain),
+                          child: Image.file(File(_store.imageLocation), fit: BoxFit.contain),
                         ),
                       )
                     : Container(),
-                Text(storeName),
+                Text(_storeName),
               ],
             ),
           ],
         ),
         centerTitle: true,
-        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         actions: [
           Visibility(visible: kDebugMode, child: IconButton(onPressed: () => Storage.printAllSavedData(), icon: const Icon(Icons.print))),
           Semantics(
             container: true,
             label: 'Alphabetical switch',
-            checked: alphaOrder,
-            value: 'Feature is ${alphaOrder ? 'enabled' : 'disabled'}',
+            checked: _alphaOrder,
+            value: 'Feature is ${_alphaOrder ? 'enabled' : 'disabled'}',
             increasedValue: 'Tap to disable feature',
             decreasedValue: 'Tap to enable feature',
             child: Switch(
@@ -268,10 +272,10 @@ class _ItemListState extends State<ItemList> {
               trackOutlineColor: WidgetStateProperty.all(AppColors.of(context).resolvedTitleText),
               onChanged: (bool value) async {
                 await Storage.saveAlphaOrder(value, 2);
-                alphaOrder = value;
+                _alphaOrder = value;
                 setState(() {});
               },
-              value: alphaOrder,
+              value: _alphaOrder,
             ),
           ),
         ],
@@ -279,7 +283,7 @@ class _ItemListState extends State<ItemList> {
       body: Column(
         children: [
           Visibility(
-            visible: itemList.isNotEmpty,
+            visible: _itemList.isNotEmpty,
             child: Container(
               color: AppColors.of(context).primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -290,7 +294,7 @@ class _ItemListState extends State<ItemList> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0, end: progress),
+                        tween: Tween<double>(begin: 0, end: _progress),
                         duration: const Duration(milliseconds: 1000),
                         curve: Curves.easeInOut,
                         builder: (context, value, child) {
@@ -303,7 +307,7 @@ class _ItemListState extends State<ItemList> {
                       right: 0,
                       top: -2.5,
                       child: Text(
-                        '${(progress * 100).toInt()}%',
+                        '${(_progress * 100).toInt()}%',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -316,25 +320,20 @@ class _ItemListState extends State<ItemList> {
               ),
             ),
           ),
-          alphaOrder
+          _alphaOrder
               ? Expanded(
                   child: ListView.builder(
                     padding: const EdgeInsets.all(10),
-                    itemCount: itemList.length + 1,
+                    itemCount: _itemList.length + 1,
                     itemBuilder: (context, index) {
-                      if (index < itemList.length) {
-                        itemList.sort(
-                          (a, b) {
-                            if (a.isChecked && !b.isChecked) {
-                              return 1;
-                            } else if (!a.isChecked && b.isChecked) {
-                              return -1;
-                            } else {
-                              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-                            }
-                          },
+                      if (index < _itemList.length) {
+                        return ItemCard(
+                          isAllItemCard: false,
+                          item: _itemList[index],
+                          list: _itemList,
+                          update: _updateProgressBar,
+                          store: _store,
                         );
-                        return ItemCard(list: itemList, store: store, index: index, updateProgressBar: updateProgressBar);
                       }
                       return const ScrollCard();
                     },
@@ -343,7 +342,7 @@ class _ItemListState extends State<ItemList> {
               : Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: ReorderableCardList(list: itemList, store: store, updateProgressBarOrRemoveStore: updateProgressBar),
+                    child: ReorderableCardList(list: _itemList, store: _store, updateProgressBar: _updateProgressBar),
                   ),
                 ),
         ],
@@ -357,9 +356,9 @@ class _ItemListState extends State<ItemList> {
             context: context,
             icon: Icons.add,
             labelKey: "itemList.addButton",
-            onTap: () => showNewItemDialog(context),
+            onTap: () => _showNewItemDialog(context),
           ),
-          speedDialChildCustom(context: context, icon: Icons.deselect, labelKey: "itemList.uncheckAll", onTap: () => removeAllCheckmarksDialog()),
+          speedDialChildCustom(context: context, icon: Icons.deselect, labelKey: "itemList.uncheckAll", onTap: () => _removeAllCheckmarksDialog()),
         ],
       ),
     );

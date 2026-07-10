@@ -15,73 +15,72 @@ class ColorPicker extends StatefulWidget {
 }
 
 class _ColorPickerState extends State<ColorPicker> {
-  late Map<AppColorKey, Color> customColors = {};
-  AppTheme selectedTheme = AppTheme.light;
+  final Map<AppColorKey, Color> _customColors = {};
+  AppTheme _selectedTheme = AppTheme.light;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     ThemeManager themeManager = context.read<ThemeManager>();
-    selectedTheme = themeManager.theme;
+    _selectedTheme = themeManager.theme;
     ColorPalette? colorPalette = themeManager.getCustomPalette();
     if (colorPalette != null) {
-      mapFromColorPalette(colorPalette);
+      _mapFromColorPalette(colorPalette);
     }
   }
 
-  void mapFromColorPalette(ColorPalette palette) {
-    customColors[AppColorKey.background] = palette.background;
-    customColors[AppColorKey.primaryColor] = palette.primaryColor;
-    customColors[AppColorKey.secondaryColor] = palette.secondaryColor;
-    customColors[AppColorKey.progressBar] = palette.progressBar;
-    setIfNotNull(AppColorKey.resolvedTitleText, palette.titleText);
-    setIfNotNull(AppColorKey.resolvedItemBackground, palette.itemBackgroundCheckFill);
-    setIfNotNull(AppColorKey.resolvedItemText, palette.itemText);
-    setIfNotNull(AppColorKey.resolvedItemCheckbox, palette.itemCheckbox);
-    setIfNotNull(AppColorKey.resolvedItemCrossed, palette.itemTextCrossed);
-    setIfNotNull(AppColorKey.resolvedItemCrossedLine, palette.itemTextCrossedLine);
-    setIfNotNull(AppColorKey.resolvedFabFill, palette.fabFill);
-    setIfNotNull(AppColorKey.resolvedFabIcon, palette.fabIcon);
+  void _mapFromColorPalette(ColorPalette palette) {
+    _customColors[AppColorKey.background] = palette.background;
+    _customColors[AppColorKey.primaryColor] = palette.primaryColor;
+    _customColors[AppColorKey.secondaryColor] = palette.secondaryColor;
+    _customColors[AppColorKey.progressBar] = palette.progressBar;
+    _setIfNotNull(AppColorKey.resolvedTitleText, palette.titleText);
+    _setIfNotNull(AppColorKey.resolvedItemBackground, palette.itemBackgroundCheckFill);
+    _setIfNotNull(AppColorKey.resolvedItemText, palette.itemText);
+    _setIfNotNull(AppColorKey.resolvedItemCheckbox, palette.itemCheckbox);
+    _setIfNotNull(AppColorKey.resolvedItemCrossed, palette.itemTextCrossed);
+    _setIfNotNull(AppColorKey.resolvedItemCrossedLine, palette.itemTextCrossedLine);
+    _setIfNotNull(AppColorKey.resolvedFabFill, palette.fabFill);
+    _setIfNotNull(AppColorKey.resolvedFabIcon, palette.fabIcon);
   }
 
-  void setIfNotNull(AppColorKey key, Color? value) {
+  void _setIfNotNull(AppColorKey key, Color? value) {
     if (value != null) {
-      customColors[key] = value;
+      _customColors[key] = value;
     }
   }
 
-  ColorPalette mapToColorPalette() {
+  ColorPalette _mapToColorPalette() {
     ThemeManager themeManager = context.read<ThemeManager>();
     ColorPalette basePalette = themeManager.theme == AppTheme.system || themeManager.theme == AppTheme.custom
         ? (MediaQuery.platformBrightnessOf(context) == Brightness.dark ? AppColors.dark : AppColors.light)
         : themeManager.defaultPalette;
     ColorPalette newCustomPalette = ColorPalette(
-      background: customColors[AppColorKey.background] ?? basePalette.background,
-      primaryColor: customColors[AppColorKey.primaryColor] ?? basePalette.primaryColor,
-      secondaryColor: customColors[AppColorKey.secondaryColor] ?? basePalette.secondaryColor,
-      progressBar: customColors[AppColorKey.progressBar] ?? basePalette.progressBar,
-      titleText: customColors[AppColorKey.resolvedTitleText],
-      itemBackgroundCheckFill: customColors[AppColorKey.resolvedItemBackground],
-      itemText: customColors[AppColorKey.resolvedItemText],
-      itemCheckbox: customColors[AppColorKey.resolvedItemCheckbox],
-      itemTextCrossed: customColors[AppColorKey.resolvedItemCrossed],
-      itemTextCrossedLine: customColors[AppColorKey.resolvedItemCrossedLine],
-      fabFill: customColors[AppColorKey.resolvedFabFill],
-      fabIcon: customColors[AppColorKey.resolvedFabIcon],
+      background: _customColors[AppColorKey.background] ?? basePalette.background,
+      primaryColor: _customColors[AppColorKey.primaryColor] ?? basePalette.primaryColor,
+      secondaryColor: _customColors[AppColorKey.secondaryColor] ?? basePalette.secondaryColor,
+      progressBar: _customColors[AppColorKey.progressBar] ?? basePalette.progressBar,
+      titleText: _customColors[AppColorKey.resolvedTitleText],
+      itemBackgroundCheckFill: _customColors[AppColorKey.resolvedItemBackground],
+      itemText: _customColors[AppColorKey.resolvedItemText],
+      itemCheckbox: _customColors[AppColorKey.resolvedItemCheckbox],
+      itemTextCrossed: _customColors[AppColorKey.resolvedItemCrossed],
+      itemTextCrossedLine: _customColors[AppColorKey.resolvedItemCrossedLine],
+      fabFill: _customColors[AppColorKey.resolvedFabFill],
+      fabIcon: _customColors[AppColorKey.resolvedFabIcon],
     );
     return newCustomPalette;
   }
 
-  void updateCustomColors(AppColorKey appColorKey, Color newColor, bool isRemove) {
+  void _updateCustomColors(AppColorKey appColorKey, Color newColor, bool isRemove) {
     if (!isRemove) {
-      customColors[appColorKey] = newColor;
+      _customColors[appColorKey] = newColor;
     } else {
-      customColors.remove(appColorKey);
+      _customColors.remove(appColorKey);
     }
     ThemeManager themeManager = context.read<ThemeManager>();
-    ColorPalette newCustomPalette = mapToColorPalette();
+    ColorPalette newCustomPalette = _mapToColorPalette();
     themeManager.setCustomPalette(newCustomPalette);
-    debugPrint(newCustomPalette.toJson().toString());
   }
 
   @override
@@ -95,17 +94,16 @@ class _ColorPickerState extends State<ColorPicker> {
             visible: kDebugMode,
             child: IconButton(
               onPressed: () {
-                final result = customColors.entries.map((entry) {
+                final result = _customColors.entries.map((entry) {
                   return "${entry.key}, ${entry.value.toARGB32().toRadixString(16).padLeft(8, '0')}";
                 }).join("\n");
                 debugPrint(result);
-                debugPrint("");
               },
               icon: const Icon(Icons.print),
             ),
           ),
         ],
-        leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(10),
@@ -128,11 +126,11 @@ class _ColorPickerState extends State<ColorPicker> {
               ButtonSegment(value: AppTheme.dark, icon: Icon(Icons.dark_mode)),
             ],
             selected: {
-              selectedTheme,
+              _selectedTheme,
             },
             onSelectionChanged: (selection) {
-              selectedTheme = selection.first;
-              context.read<ThemeManager>().setTheme(selectedTheme);
+              _selectedTheme = selection.first;
+              context.read<ThemeManager>().setTheme(_selectedTheme);
               setState(() {});
             },
           ),
@@ -144,29 +142,29 @@ class _ColorPickerState extends State<ColorPicker> {
             name: context.read<LanguageService>().text("colorPicker.background"),
             isNotMandatory: false,
             colorKey: AppColorKey.background,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.primary"),
             isNotMandatory: false,
             colorKey: AppColorKey.primaryColor,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.secondary"),
             isNotMandatory: false,
             colorKey: AppColorKey.secondaryColor,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.progressBar"),
             isNotMandatory: false,
             colorKey: AppColorKey.progressBar,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           Text(
             context.read<LanguageService>().text("colorPicker.optional"),
@@ -176,52 +174,52 @@ class _ColorPickerState extends State<ColorPicker> {
             name: context.read<LanguageService>().text("colorPicker.titleText"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedTitleText,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.itemBackground"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemBackground,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.itemText"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemText,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.itemCheckbox"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCheckbox,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.itemCrossed"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCrossed,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.itemCrossedLine"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedItemCrossedLine,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
           ColorPickerCard(
             name: context.read<LanguageService>().text("colorPicker.fabIcon"),
             isNotMandatory: true,
             colorKey: AppColorKey.resolvedFabIcon,
-            customColors: customColors,
-            updateCustomColors: updateCustomColors,
+            customColors: _customColors,
+            updateCustomColors: _updateCustomColors,
           ),
-          const ScrollCard()
+          const ScrollCard(),
         ],
       ),
     );

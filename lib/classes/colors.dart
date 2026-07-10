@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static final light = ColorPalette(
-    background: const Color(0xFFFFFFFF),
-    primaryColor: const Color(0xFFF57C00),
-    secondaryColor: const Color(0xFF1976D2),
-    progressBar: const Color(0xFF4CAF50),
+  static const light = ColorPalette(
+    background: Color(0xFFFFFFFF),
+    primaryColor: Color(0xFFF57C00),
+    secondaryColor: Color(0xFF1976D2),
+    progressBar: Color(0xFF4CAF50),
   );
 
-  static final dark = ColorPalette(
-    background: const Color(0xFF121212),
-    primaryColor: const Color(0xFF1E3A8A),
-    secondaryColor: const Color(0xFF5B21B6),
-    progressBar: const Color(0xFF4CAF50),
+  static const dark = ColorPalette(
+    background: Color(0xFF121212),
+    primaryColor: Color(0xFF1E3A8A),
+    secondaryColor: Color(0xFF5B21B6),
+    progressBar: Color(0xFF4CAF50),
   );
 
   static ColorPalette of(BuildContext context) {

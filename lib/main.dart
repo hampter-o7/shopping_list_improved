@@ -4,13 +4,17 @@ import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/theme_manager.dart';
 import 'package:shopping_list/pages/all_items_list.dart';
 import 'package:shopping_list/pages/color_picker.dart';
+import 'package:shopping_list/pages/item_list.dart';
+import 'package:shopping_list/pages/settings.dart';
+import 'package:shopping_list/pages/store_list.dart';
 import 'package:shopping_list/storage/local_storage.dart';
-import 'pages/item_list.dart';
-import 'pages/settings.dart';
-import 'pages/store_list.dart';
 
 final language = LanguageService();
-
+// TODO update semantic labels
+// TODO make showcase of features
+// TODO add fab to all item list
+// TODO add near location notification
+// TODO update color picker for better user experience
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

@@ -81,7 +81,6 @@ class _ColorPickerState extends State<ColorPicker> {
     ThemeManager themeManager = context.read<ThemeManager>();
     ColorPalette newCustomPalette = _mapToColorPalette();
     themeManager.setCustomPalette(newCustomPalette);
-    debugPrint(newCustomPalette.toJson().toString());
   }
 
   @override
@@ -99,7 +98,6 @@ class _ColorPickerState extends State<ColorPicker> {
                   return "${entry.key}, ${entry.value.toARGB32().toRadixString(16).padLeft(8, '0')}";
                 }).join("\n");
                 debugPrint(result);
-                debugPrint("");
               },
               icon: const Icon(Icons.print),
             ),

@@ -1,7 +1,7 @@
 name: shopping_list
 description: A shopping list app.
 publish_to: 'none'
-version: 1.7.5+9
+version: 1.7.6+10
 
 
 environment:
@@ -23,6 +23,7 @@ dependencies:
   flex_color_picker: ^3.8.0
   speech_to_text: ^7.4.0
   showcaseview: ^5.1.0
+  permission_handler: ^12.0.3
   
 dev_dependencies:
   flutter_test:

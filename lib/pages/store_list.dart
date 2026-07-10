@@ -7,10 +7,10 @@ import 'package:shopping_list/classes/store.dart';
 import 'package:shopping_list/my_widgets/language_service.dart';
 import 'package:shopping_list/my_widgets/reorderable_card_list.dart';
 import 'package:shopping_list/my_widgets/scroll_card.dart';
+import 'package:shopping_list/my_widgets/speech_service.dart';
 import 'package:shopping_list/my_widgets/speed_dial_child_custom.dart';
 import 'package:shopping_list/my_widgets/store_card.dart';
 import 'package:shopping_list/storage/local_storage.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 
 class StoreList extends StatefulWidget {
   const StoreList({super.key});
@@ -21,22 +21,13 @@ class StoreList extends StatefulWidget {
 
 class _StoreListState extends State<StoreList> {
   bool _alphaOrder = false;
-  bool _speechEnabled = false;
-  bool _isListening = false;
   final _textController = TextEditingController();
-  final SpeechToText _speech = SpeechToText();
   List<Store> _storeList = [];
 
   @override
   void initState() {
     super.initState();
-    _initSpeech();
     _loadStoresAndAlphaOrder();
-  }
-
-  Future<void> _initSpeech() async {
-    _speechEnabled = await _speech.initialize();
-    setState(() {});
   }
 
   @override
@@ -78,6 +69,8 @@ class _StoreListState extends State<StoreList> {
   }
 
   Future<dynamic> _showNewStoreDialog(BuildContext context) {
+    final speech = SpeechService();
+    bool isListening = false;
     return showDialog(
       context: context,
       builder: (context) {
@@ -98,32 +91,29 @@ class _StoreListState extends State<StoreList> {
                     decoration: InputDecoration(
                       hintText: context.read<LanguageService>().text("storeList.addNewHint"),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _isListening ? Icons.mic : Icons.mic_off,
-                          color: AppColors.of(context).resolvedItemText,
-                        ),
-                        onPressed: () async {
-                          if (_isListening) {
-                            await _speech.stop();
-                            _isListening = false;
-                          } else {
-                            if (!_speechEnabled) return;
-                            await _speech.listen(
-                              onResult: (result) {
-                                _textController.text = result.recognizedWords;
-                                _textController.selection = TextSelection.fromPosition(
-                                  TextPosition(offset: _textController.text.length),
-                                );
-                                _isListening = false;
-                                setModalState(() {});
-                              },
-                            );
-                            _isListening = true;
-                          }
-                          debugPrint("$_isListening");
-                          setModalState(() {});
-                        },
-                      ),
+                          icon: Icon(isListening ? Icons.mic : Icons.mic_none),
+                          onPressed: () async {
+                            if (!speech.isListening) {
+                              isListening = true;
+                              setModalState(() {});
+                              await speech.startListening(
+                                (text) {
+                                  _textController.text = text;
+                                  _textController.selection = TextSelection.fromPosition(TextPosition(offset: _textController.text.length));
+                                  isListening = false;
+                                  setModalState(() {});
+                                },
+                                onError: (errorMsg) {
+                                  isListening = false;
+                                  setModalState(() {});
+                                },
+                              );
+                            } else {
+                              speech.stopListening();
+                              isListening = false;
+                            }
+                            setModalState(() {});
+                          }),
                     ),
                   ),
                 ],

@@ -10,7 +10,11 @@ import 'package:shopping_list/pages/store_list.dart';
 import 'package:shopping_list/storage/local_storage.dart';
 
 final language = LanguageService();
-
+// TODO update semantic labels
+// TODO make showcase of features
+// TODO add fab to all item list
+// TODO add near location notification
+// TODO update color picker for better user experience
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

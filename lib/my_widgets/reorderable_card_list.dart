@@ -58,7 +58,7 @@ class _ReorderableCardListState<T> extends State<ReorderableCardList> {
               )
     ];
 
-    final draggableCards = [for (int i = 0; i < cards.length; i++) ReorderableDragStartListener(key: cards[i].key, index: i, child: cards[i])];
+    final draggableCards = [for (int i = 0; i < cards.length; i++) ReorderableDelayedDragStartListener(key: cards[i].key, index: i, child: cards[i])];
 
     const scrollCard = KeyedSubtree(key: Key('emptyCard'), child: ScrollCard());
 

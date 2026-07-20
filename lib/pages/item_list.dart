@@ -358,7 +358,12 @@ class _ItemListState extends State<ItemList> {
             labelKey: "itemList.addButton",
             onTap: () => _showNewItemDialog(context),
           ),
-          speedDialChildCustom(context: context, icon: Icons.deselect, labelKey: "itemList.uncheckAll", onTap: () => _removeAllCheckmarksDialog()),
+          speedDialChildCustom(
+            context: context,
+            icon: Icons.deselect,
+            labelKey: "itemList.uncheckAll",
+            onTap: () => _removeAllCheckmarksDialog(),
+          ),
         ],
       ),
     );

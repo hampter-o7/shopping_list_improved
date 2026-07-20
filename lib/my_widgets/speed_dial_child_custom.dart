@@ -31,6 +31,7 @@ SpeedDialChild speedDialChildCustom({
             disableBarrierInteraction: true,
             disposeOnTap: true,
             onTargetClick: handleShowcaseTap,
+            targetPadding: const EdgeInsets.all(8),
             child: iconWidget,
           ),
     label: context.read<LanguageService>().text(labelKey),

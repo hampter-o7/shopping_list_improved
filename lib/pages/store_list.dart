@@ -27,8 +27,8 @@ class _StoreListState extends State<StoreList> {
 
   final GlobalKey _fabKey = GlobalKey();
   final GlobalKey _addButtonKey = GlobalKey();
-  final GlobalKey _newStoreKey = GlobalKey();
-  int? _tutorialStoreId;
+  final List<GlobalKey> _newStoreKeys = [];
+  final List<int> _tutorialStoreIds = [];
 
   final ValueNotifier<bool> _speedDialOpen = ValueNotifier<bool>(false);
 
@@ -74,10 +74,14 @@ class _StoreListState extends State<StoreList> {
     Storage.saveStore(newStore);
     _textController.clear();
 
-    _tutorialStoreId = newId;
+    GlobalKey newStoreKey = GlobalKey();
+    _newStoreKeys.add(newStoreKey);
+    int tutorialStoreId = newId;
+    _tutorialStoreIds.add(tutorialStoreId);
     setState(() {});
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 300), () => ShowcaseView.get().startShowCase([_newStoreKey]));
+      ShowcaseView.get().startShowCase([_newStoreKeys[0]]);
     });
   }
 
@@ -206,18 +210,19 @@ class _StoreListState extends State<StoreList> {
                 itemCount: _storeList.length + 1,
                 itemBuilder: (context, index) {
                   if (index < _storeList.length) {
-                    final store = storeList[index];
+                    final store = _storeList[index];
                     final card = StoreCard(
-                      store: _store,
+                      store: store,
                       index: index,
                       removeStore: _removeStore,
                     );
-
-                    if (_tutorialStoreId != null && store.id == _tutorialStoreId) {
+                    if (_tutorialStoreIds.isNotEmpty && store.id == _tutorialStoreIds[0]) {
                       return Showcase(
-                        key: _newStoreKey,
+                        key: _newStoreKeys[0],
                         description: 'Tap on your new store to open it.',
                         disableBarrierInteraction: true,
+                        disposeOnTap: true,
+                        onTargetClick: () => Navigator.pushNamed(context, '/ItemList', arguments: {'store': store}),
                         child: card,
                       );
                     }
@@ -235,13 +240,9 @@ class _StoreListState extends State<StoreList> {
         disableScaleAnimation: true,
         disableMovingAnimation: true,
         onTargetClick: () {
-          _speedDialOpen.value = true; // force the dial open
-          // Wait for the open animation + child widgets to mount, then
-          // showcase the "+" button specifically.
+          _speedDialOpen.value = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Future.delayed(const Duration(milliseconds: 300), () {
-              ShowcaseView.get().startShowCase([_addButtonKey]);
-            });
+            Future.delayed(const Duration(milliseconds: 300), () => ShowcaseView.get().startShowCase([_addButtonKey]));
           });
         },
         disposeOnTap: true,
@@ -257,7 +258,7 @@ class _StoreListState extends State<StoreList> {
               labelKey: "storeList.addButton",
               onTap: () => _showNewStoreDialog(context),
               showcaseKey: _addButtonKey,
-              showcaseDescription: 'Tap here to create a new store.',
+              showcaseDescription: "Tap here to create a new store.",
               speedDialOpen: _speedDialOpen,
             ),
             speedDialChildCustom(
